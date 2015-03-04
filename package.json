@@ -1,0 +1,21 @@
+{
+  "name": "pizza-picker",
+  "version": "0.0.1",
+  "description": "A widget for picking the best pizza ever",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {},
+  "author": "ludovic demblans <ludovic@demblans.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "dotenv": "^0.5.1",
+    "jsx-loader": "^0.12.2",
+    "webpack": "^1.5.3"
+  },
+  "dependencies": {
+    "react": "^0.12.2",
+    "reflux": "^0.2.5"
+  }
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pizza Demo</title>
+
+
+<h3>Pizza Test</h3>
+
+<div id="my-picker"></div>
+
+<script type="text/javascript" src="dist/bundle.js"></script>
+<script type="text/javascript">
+
+	// Create a picker
+	var picker = new PizzaPicker
+	// Then set the ingredients. It's an object with simple keys mapping to
+	// display names for the ingredients. You must bind a variable to the return
+	// value in order to create pizzas
+	var ingrs = picker.setIngredients({
+		tomato: 'Tomato',
+		cheese: 'Emmental'
+	})
+	// Then add the pizzas. They must have a name and some ingredients. Just use
+	// the variable you've bound to the setIngredients call previously
+	picker.addPizzas([
+		{name:'Margarita', ingredients:[ingrs.tomato, ingrs.cheese]}
+	])
+	// Finally, render the picker in a div
+	picker.render(document.getElementById('my-picker'))
+</script>
