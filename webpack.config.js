@@ -20,7 +20,7 @@ module.exports = {
 	entry: js("main.js"),
 	output: {
 		path: "dist",
-		filename: "bundle.js"
+		filename: "pizza-picker.js"
 	},
 	module: {
 		loaders: [
