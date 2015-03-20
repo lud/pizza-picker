@@ -7,26 +7,31 @@
 
 <h3>Test</h3>
 
-<div id="my-picker"></div>
+<pizzapicker id="p1"></pizzapicker>
 
 <script type="text/javascript" src="dist/pizza-picker.js"></script>
+<script type="text/javascript" src="dist/pizza-picker-lc_fr.js"></script>
 <script type="text/javascript">
 
 	// Create a picker
-	var picker = new PizzaPicker
-	// Then set the ingredients. It's an object with simple keys mapping to
-	// display names for the ingredients. You must bind a variable to the return
-	// value in order to create pizzas
-	picker.setIngredients({
-		tomato: 'Tomato',
-		cheese: 'Emmental'
+	var picker = PizzaPicker.create({
+		locale:'fr',
+		// Then set the ingredients. It's an object with simple keys mapping to
+		// display names for the ingredients.
+		ingredients: {
+			tomato: 'Tomato',
+			cheese: 'Emmental',
+			ham: 'Ham',
+			shrooms: 'White Mushrooms',
+		},
+		// Then add the pizzas. They must have a name and some ingredients. Just
+		// use the keys you've defined in the setIngredients call previously
+		pizzas: [
+			{name:'Kana', ingredients:['tomato', 'cheese'], price:5},
+			{name:'Tron$on',  ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}},
+		],
+		// Finally, render the picker in a div #p1
+		container: '#p1'
 	})
-	// Then add the pizzas. They must have a name and some ingredients. Just use
-	// the keys you've defined in the setIngredients call previously
-	picker.setPizzas([
-		{name:'Margarita', ingredients:['tomato', 'cheese']}
-	])
 	console.log('picker',picker)
-	// Finally, render the picker in a div
-	picker.render(document.getElementById('my-picker'))
 </script>

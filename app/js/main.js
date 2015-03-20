@@ -1,43 +1,46 @@
-console.log('Defining PizzaPicker')
 
-var Immutable = require('Immutable')
+var Reflux = require('reflux')
 var extend = require('extend')
+var tpl = {
+	pizzapicker: require('tpl/pizzapicker.tag')
+}
+var riot = require('riot')
+var makeActions = require('actions')
+var makeStore = require('store')
+
+// -- Picker Object -----------------------------------------------------------
+
+var PizzaPicker = {}
+
+// Lang are not stored in the prototype
+PizzaPicker.i18n = {}
+PizzaPicker.create = function(_opts) {
+
+	var api = makeActions()
 
 
-// -- Root object -------------------------------------------------------------
+	var defaultOpts = {
+		ingredients:{},
+		pizzas:[],
+		locale:'en',
+		container:'pizzapicker',
+	}
 
-function PizzaPicker() {
+	var opts = extend(defaultOpts, _opts)
 
+	var locale = PizzaPicker.i18n[opts.locale]
+	if (locale === void 0) throw new Error('Locale '+ opts.locale+' not found')
+
+	var picker = makeStore(api, opts)
+
+	// our exported api is an objet of Reflux actions
+
+	riot.mount(opts.container, {actions: api, store: picker, lc: locale})
+
+	return api
 }
 
-PizzaPicker.prototype.setIngredients = function(kvIngredients) {
-	var ingrs = Immutable.Map(kvIngredients)
-	ingrs = ingrs.map(v => makeIngredient(v))
-	this.ingredients = ingrs
-	return this
-}
 
-PizzaPicker.prototype.setPizzas = function(pizzasDefs) {
-	return this
-}
-
-PizzaPicker.prototype.render = function() {
-	console.log('@todo rendering')
-}
-
-
-// -- Ingredients -------------------------------------------------------------
-
-function makeIngredient(term) {
-	var defaults = defaultIngredient()
-	if (typeof term === 'string')
-		return extend(defaults, {label:term})
-	else
-		return extend(defaults, term)
-}
-
-function defaultIngredient() {
-	return {yum: 0, allowed:true, tags:[]}
-}
+// Export the object
 
 window.PizzaPicker = PizzaPicker

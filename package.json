@@ -10,14 +10,18 @@
   "author": "ludovic demblans <ludovic@demblans.com>",
   "license": "MIT",
   "devDependencies": {
+    "babel": "^4.7.16",
+    "babel-core": "^4.7.16",
+    "babel-loader": "^4.2.0",
     "dotenv": "^0.5.1",
-    "jsx-loader": "^0.12.2",
-    "webpack": "^1.5.3"
+    "loader-utils": "^0.2.6",
+    "riot": "^2.0.13",
+    "riotjs-loader": "^1.1.3",
+    "webpack": "^1.7.3"
   },
   "dependencies": {
     "extend": "^2.0.0",
     "immutable": "^3.6.2",
-    "react": "^0.12.2",
     "reflux": "^0.2.5"
   }
 }
