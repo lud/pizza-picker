@@ -26,11 +26,9 @@ module.exports = {
 		filename: "[name].js"
 	},
 	module: {
-		preLoaders: [
-			{ test: /\.tag$/, exclude: /node_modules/, loader: 'riotjs-loader', query: { type: 'none' } }
-		],
 		loaders: [
-			 { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'}
+			{ test: /\.html$/, loader: 'ractive' },
+			{ test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'}
 		]
 	},
 	amd: {phoenix: false},
@@ -43,6 +41,7 @@ module.exports = {
 	devtool: '#eval-source-map',
 	plugins: [
 		new webpack.optimize.OccurenceOrderPlugin(true),
-    	new webpack.ProvidePlugin({riot: 'riot'})
+		new webpack.optimize.UglifyJsPlugin({minimize: true}),
+		new webpack.optimize.DedupePlugin()
 	]
 }

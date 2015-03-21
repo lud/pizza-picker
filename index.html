@@ -7,7 +7,8 @@
 
 <h3>Test</h3>
 
-<pizzapicker id="p1"></pizzapicker>
+<div id="p1"></div>
+<script id="p2" type="text/ractive">Fuck {{ name }} !</script>
 
 <script type="text/javascript" src="dist/pizza-picker.js"></script>
 <script type="text/javascript" src="dist/pizza-picker-lc_fr.js"></script>
@@ -31,7 +32,7 @@
 			{name:'Tron$on',  ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}},
 		],
 		// Finally, render the picker in a div #p1
-		container: '#p1'
+		container: 'p1'
 	})
 	console.log('picker',picker)
 </script>

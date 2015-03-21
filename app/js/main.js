@@ -2,11 +2,12 @@
 var Reflux = require('reflux')
 var extend = require('extend')
 var tpl = {
-	pizzapicker: require('tpl/pizzapicker.tag')
+	pizzapicker: require('tpl/pizzapicker.html')
 }
 var riot = require('riot')
 var makeActions = require('actions')
 var makeStore = require('store')
+var makeView = require('view')
 
 // -- Picker Object -----------------------------------------------------------
 
@@ -33,9 +34,14 @@ PizzaPicker.create = function(_opts) {
 
 	var picker = makeStore(api, opts)
 
-	// our exported api is an objet of Reflux actions
+	// initialisation of the view
 
-	riot.mount(opts.container, {actions: api, store: picker, lc: locale})
+	var view = makeView(picker, api, opts, locale)
+
+
+	console.log('view',view)
+
+	// our exported api is an objet of Reflux actions
 
 	return api
 }

@@ -1,0 +1,16 @@
+<div>
+<p>{{ lc.selected_pizzas_count(pizzas.length) }}
+<table>
+	{{#pizzas}}
+		<tr>
+			<td>
+				<p>{{ name }}</p>
+				<small>{{ formatIngredientsList(ingredients) }}</small>
+
+
+			</td>
+		</tr>
+	{{/pizzas}}
+
+</table>
+</div>

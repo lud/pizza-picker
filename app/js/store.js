@@ -1,6 +1,6 @@
 
 var extend = require('extend')
-var Immutable = require('Immutable')
+var Immutable = require('immutable')
 var Reflux = require('reflux')
 var sortBy = require('helpers/sortby')
 
