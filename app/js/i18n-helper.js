@@ -1,20 +1,5 @@
 
-function insertVarAt(tpl, marker) {
-	if (typeof tpl === 'function') return tpl
-	var parts = fun.split(marker)
-	return function () {
-
-	}
-}
-
-
-exports.ofCount = function(_map) {
-	var map = {}
-
-	for(var k in _map) if (_map.hasOwnProperty(k)) {
-		map[k] = insertVarAt(_map[k],'%1')
-	}
-
+exports.ofCount = function(map) {
 	return function (count) {
 		count = Number(count)
 		if (count === 0) return (map['0'] || map['10'] || map['1'])(count)
