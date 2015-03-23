@@ -4,53 +4,82 @@ var Immutable = require('immutable')
 var Reflux = require('reflux')
 var sortBy = require('helpers/sortby')
 
-var PENALTY = -9999
+var status = require('constants').status
+
+var Pizza = Immutable.Record({price:0, score:0, ingredients:[], name:""})
 
 module.exports = function(api, opts) {
-
-
-	return  Reflux.createStore({
+	return window.store = Reflux.createStore({
 		listenables: api,
 		init: function(){
 			this.ingrs = Immutable.Map(opts.ingredients).map(makeIngredient)
 			this.diameters = Immutable.List(computeDiameters(opts.pizzas)).sort()
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
-			this.setRankedPizzas()
+		},
+		onSetYummy: function(key, currentStatus) {
+			this.ingrs = this.ingrs.update(key, function(ing){
+				ing.status = currentStatus === status.YUMMY ? status.PASS : status.YUMMY
+				return ing
+			})
+			this.trigger()
+		},
+		onSetYuck: function(key, currentStatus) {
+			this.ingrs = this.ingrs.update(key, function(ing){
+				ing.status = currentStatus === status.YUCK ? status.PASS : status.YUCK
+				return ing
+			})
+			this.trigger()
 		},
 		getDiameters: function() {
 			return this.diameters.toJS()
 		},
 		getIngredients: function() {
-			return this.ingrs.toJS()
+			return this.ingrs.toList().toJS()
 		},
 		getIngredient: function(key) {
 			return this.ingrs.get(key)
 		},
-		setRankedPizzas: function() {
-			this.ranked = this.pizzas
+		getStatuses: function(){
+			return extend({}, status)
+		},
+		getPizzas: function(){
+			return this.pizzas.toJS()
+		},
+		calcRankedPizzas: function() {
+			console.log("BEFORE CALC", this.pizzas.map(function(p){
+				console.log('INGS', p.ingredients)
+			}))
+			return this.pizzas
 				// 1. Compute pizzas score
 				.map(this.setScore)
 				// 2. Filter out pizzas with score < 0
 				.filter(this.scoreFilter)
 				// 3. Sort by score desc
 				.sort(sortBy(p => p.score ))
+				.reverse()
 				// 4. Set the real ingredients
 				.map(this.setIngredients)
 		},
 		getRankedPizzas: function() {
-			return this.ranked.toJS()
+			var calculated = this.calcRankedPizzas()
+			console.log('calculated',calculated.toJS())
+			return calculated.toJS()
 		},
 		setIngredients: function (pizza) {
-			pizza.ingredients = pizza.ingredients.map(this.getIngredient)
+			console.log('setIngredients', pizza.ingredients)
+			pizza = pizza.set('ingredients', pizza.ingredients.map(this.getIngredient))
+			console.log(' -> ', pizza.ingredients)
 			return pizza
 		},
 		setScore: function (pizza) {
+			console.log('setScore called')
 			var ingrs = this.ingrs
 			var sumScore = function(score, key) {
-				var ingr = ingrs.get(key, {yummy:0})
-				return score + (ingr.ok ? ingr.yummy : PENALTY)
+				var ingr = ingrs.get(key, {status: status.PASS}) //@todo remove error skipping
+				console.log("score of ", ingr.name, " = ",getScore(ingr.status))
+				return score + getScore(ingr.status)
 			}
-			pizza.score = pizza.ingredients.reduce(sumScore, pizza.score)
+			pizza = pizza.set('score', pizza.ingredients.reduce(sumScore, pizza.score))
 			return pizza
 		},
 		scoreFilter: function(pizza) {
@@ -60,25 +89,19 @@ module.exports = function(api, opts) {
 }
 
 function makePizza(term) {
-	return extend(defaultPizza(), term)
+	return new Pizza(term)
 }
 
-function defaultPizza() {
-	return {price:0, score:0}
-}
-
-function makeIngredient(term) {
-	var defaults = defaultIngredient()
+function makeIngredient(term, key) {
+	var defaults = baseIngredient(key)
 	if (typeof term === 'string')
 		return extend(defaults, {name:term})
 	else
 		return extend(defaults, term)
 }
 
-function defaultIngredient() {
-	// ok means that the ingredient is eatable. Set false and the pizzas with
-	// this ingredients score PENALTY
-	return {yummy: 0, ok:1}
+function baseIngredient(key) {
+	return {status:status.PASS, key:key}
 }
 
 function computeDiameters(pizzas) {
@@ -96,3 +119,13 @@ function computeDiameters(pizzas) {
 	}
 	return diameters
 }
+
+var getScore = (function(){
+	var scores = {}
+	scores[status.YUCK] = -9999
+	scores[status.YUMMY] = 1
+	scores[status.PASS] = 0
+	return function(status) {
+		return scores[status]
+	}
+}())

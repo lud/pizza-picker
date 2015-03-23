@@ -4,7 +4,6 @@ var extend = require('extend')
 var tpl = {
 	pizzapicker: require('tpl/pizzapicker.html')
 }
-var riot = require('riot')
 var makeActions = require('actions')
 var makeStore = require('store')
 var makeView = require('view')
@@ -29,6 +28,10 @@ PizzaPicker.create = function(_opts) {
 
 	var opts = extend(defaultOpts, _opts)
 
+	// the app sort pizzas in reverse score, so we reverse them first so they
+	// appear on load with order set by the user
+	opts.pizzas = [].concat(opts.pizzas).reverse()
+
 	var locale = PizzaPicker.i18n[opts.locale]
 	if (locale === void 0) throw new Error('Locale '+ opts.locale+' not found')
 
@@ -42,6 +45,8 @@ PizzaPicker.create = function(_opts) {
 	console.log('view',view)
 
 	// our exported api is an objet of Reflux actions
+	//
+	picker.trigger()
 
 	return api
 }

@@ -4,11 +4,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Demo</title>
 
+<style>
+.pizza-picker li a {
+	color:grey;
+	text-decoration: none;
+}
+.pizza-picker li.status-yummy a.up {
+	color:pink;
+}
+.pizza-picker li.status-yuck {
+	color: red;
+	text-decoration: line-through;
+}
+</style>
 
 <h3>Test</h3>
 
 <div id="p1"></div>
-<script id="p2" type="text/ractive">Fuck {{ name }} !</script>
 
 <script type="text/javascript" src="dist/pizza-picker.js"></script>
 <script type="text/javascript" src="dist/pizza-picker-lc_fr.js"></script>
@@ -29,7 +41,7 @@
 		// use the keys you've defined in the setIngredients call previously
 		pizzas: [
 			{name:'Kana', ingredients:['tomato', 'cheese'], price:5},
-			{name:'Tron$on',  ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}},
+			{name:'Tron$on',  ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}}
 		],
 		// Finally, render the picker in a div #p1
 		container: 'p1'

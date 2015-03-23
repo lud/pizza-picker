@@ -1,16 +1,25 @@
-<div>
-<p>{{ lc.selected_pizzas_count(pizzas.length) }}
-<table>
-	{{#pizzas}}
-		<tr>
-			<td>
-				<p>{{ name }}</p>
-				<small>{{ formatIngredientsList(ingredients) }}</small>
+<div class="pizza-picker">
+	<p>{{ lc.selected_pizzas_count(pizzas.length) }}
 
+	<ul>
+		{{#ingredients}}
+		<li class="status-{{ statusClass(status) }}">
+			<span>{{ name }}</span>
+			<a href="#" class="up" on-click="up">&hearts;</a>
+			<a href="#" class="down" on-click="down">x</a>
+		</li>
+		{{/ingredients}}
+	</ul>
 
-			</td>
-		</tr>
-	{{/pizzas}}
+	<table>
+		{{#pizzas}}
+			<tr>
+				<td>
+					<a href="#" on-click="ttt">{{ name }}</a>
+					<small>{{ formatIngredientsList(ingredients) }}</small>
+				</td>
+			</tr>
+		{{/pizzas}}
 
-</table>
+	</table>
 </div>

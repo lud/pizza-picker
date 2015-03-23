@@ -1,6 +1,6 @@
 var get = require('helpers/get')
 
-module.exports = function sortBy(callback) {
+function sortBy(callback) {
 	var f = callback
 	// si on a simplement passé une clé, la fonction a appeler sur l'objet
 	// sert à récupérer la clé
@@ -12,3 +12,5 @@ module.exports = function sortBy(callback) {
 		return 0
 	}
 }
+
+module.exports = sortBy
