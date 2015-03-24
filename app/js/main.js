@@ -1,9 +1,6 @@
 
 var Reflux = require('reflux')
 var extend = require('extend')
-var tpl = {
-	pizzapicker: require('tpl/pizzapicker.html')
-}
 var makeActions = require('actions')
 var makeStore = require('store')
 var makeView = require('view')
@@ -40,8 +37,6 @@ PizzaPicker.create = function(_opts) {
 	// initialisation of the view
 
 	var view = makeView(picker, api, opts, locale)
-
-
 	console.log('view',view)
 
 	// our exported api is an objet of Reflux actions

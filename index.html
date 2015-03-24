@@ -20,7 +20,7 @@
 
 <h3>Test</h3>
 
-<div id="p1"></div>
+<pizzapicker id="p1"></pizzapicker>
 
 <script type="text/javascript" src="dist/pizza-picker.js"></script>
 <script type="text/javascript" src="dist/pizza-picker-lc_fr.js"></script>
@@ -43,8 +43,13 @@
 			{name:'Kana', ingredients:['tomato', 'cheese'], price:5},
 			{name:'Tron$on',  ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}}
 		],
+		events: {
+			clickPizza: function(pizza){
+				console.log('clicked on ' + pizza.name)
+			}
+		},
 		// Finally, render the picker in a div #p1
-		container: 'p1'
+		container: '#p1'
 	})
 	console.log('picker',picker)
 </script>

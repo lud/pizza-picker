@@ -8,6 +8,8 @@ var status = require('constants').status
 
 var Pizza = Immutable.Record({price:0, score:0, ingredients:[], name:""})
 
+var DEBUG = !true
+
 module.exports = function(api, opts) {
 	return window.store = Reflux.createStore({
 		listenables: api,
@@ -46,8 +48,8 @@ module.exports = function(api, opts) {
 			return this.pizzas.toJS()
 		},
 		calcRankedPizzas: function() {
-			console.log("BEFORE CALC", this.pizzas.map(function(p){
-				console.log('INGS', p.ingredients)
+			DEBUG && console.log("BEFORE CALC", this.pizzas.map(function(p){
+				DEBUG && console.log('INGS', p.ingredients)
 			}))
 			return this.pizzas
 				// 1. Compute pizzas score
@@ -62,21 +64,21 @@ module.exports = function(api, opts) {
 		},
 		getRankedPizzas: function() {
 			var calculated = this.calcRankedPizzas()
-			console.log('calculated',calculated.toJS())
+			DEBUG && console.log('calculated',calculated.toJS())
 			return calculated.toJS()
 		},
 		setIngredients: function (pizza) {
-			console.log('setIngredients', pizza.ingredients)
+			DEBUG && console.log('setIngredients', pizza.ingredients)
 			pizza = pizza.set('ingredients', pizza.ingredients.map(this.getIngredient))
-			console.log(' -> ', pizza.ingredients)
+			DEBUG && console.log(' -> ', pizza.ingredients)
 			return pizza
 		},
 		setScore: function (pizza) {
-			console.log('setScore called')
+			DEBUG && console.log('setScore called')
 			var ingrs = this.ingrs
 			var sumScore = function(score, key) {
 				var ingr = ingrs.get(key, {status: status.PASS}) //@todo remove error skipping
-				console.log("score of ", ingr.name, " = ",getScore(ingr.status))
+				DEBUG && console.log("score of ", ingr.name, " = ",getScore(ingr.status))
 				return score + getScore(ingr.status)
 			}
 			pizza = pizza.set('score', pizza.ingredients.reduce(sumScore, pizza.score))
