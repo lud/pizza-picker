@@ -4,7 +4,6 @@ var status = require('constants').status
 
 <pizzapicker>
 	<div class="pizza-picker">
-		<p>{ lc.selected_pizzas_count(pizzas.length) }</p>
 
 		<ul>
 			<li each="{ ingredients }" class={ 'status-' + parent.statusClass(status) }>
@@ -14,55 +13,57 @@ var status = require('constants').status
 			</li>
 		</ul>
 
-		<table>
-			<tr each={ pizzas }>
-				<td>
-					<a href="#">{ name }</a>
-					<small>{  parent.formatIngredientsList(ingredients) }</small>
-				</td>
-			</tr>
-		</table>
+		<p>{ lc.selected_pizzas_count(pizzas.length) }</p>
+
+		<ul>
+			<li each={ pizzas }>
+				<span>{ name }</span>
+				<small>{  parent.formatIngredientsList(ingredients) }</small>
+			</li>
+		</ul>
 
 	</div>
 
 
 	<script>
+
+		var self = this
+
 		// defines lc, ...
 		extend(this, opts.helpers)
 
 		// listen to the store
 		this.on('mount',function(){
-			// this.unsubscribe = opts.store.listen(this.update);
+			var self = this
+			this.unsubscribe = opts.store.listen(function(){
+				// on update, we just put in the state the store data
+				var data = {
+					pizzas: opts.store.getRankedPizzas(),
+					ingredients: opts.store.getIngredients()
+				}
+				self.update(data)
+			});
 		})
 
 		this.on('unmount', function(){
 			this.unsubscribe()
 		})
 
-		this.on('update', function() {
-			// on update, we just put in the state the store data
-			this.pizzas = opts.store.getRankedPizzas(),
-			console.log("this.pizzas",this.pizzas)
-			this.ingredients = opts.store.getIngredients()
-			console.log('getData this', this)
-		})
+		this.on('update', function() {})
 
 		// Actions events -------------------------------------------------------
 
 		var actions = opts.actions
 
-		this.log = function(x) {
-			console.log('X',x)
-			return x
-		}
-
 		this.up = function(evt) {
+			console.log('called', "this.up")
 			evt.preventDefault()
 			var ingredient = this
 			actions.setYummy(ingredient.key, ingredient.status)
 		}
 
 		this.down = function(evt) {
+			console.log('called', "this.down")
 			evt.preventDefault()
 			var ingredient = this
 			actions.setYuck(ingredient.key, ingredient.status)

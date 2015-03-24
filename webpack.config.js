@@ -42,10 +42,9 @@ module.exports = {
 	},
 	devtool: '#eval-source-map',
 	plugins: [
-    	new webpack.ProvidePlugin({riot: 'riot'}),
+		new webpack.ProvidePlugin({riot: 'riot'}),
 		new webpack.optimize.OccurenceOrderPlugin(true),
 		new webpack.optimize.UglifyJsPlugin({minimize: true}),
 		new webpack.optimize.DedupePlugin()
-
 	]
 }

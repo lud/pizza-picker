@@ -19,6 +19,7 @@ module.exports = function(api, opts) {
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
 		},
 		onSetYummy: function(key, currentStatus) {
+			console.log('onSetYummy',key, currentStatus)
 			this.ingrs = this.ingrs.update(key, function(ing){
 				ing.status = currentStatus === status.YUMMY ? status.PASS : status.YUMMY
 				return ing
@@ -26,6 +27,7 @@ module.exports = function(api, opts) {
 			this.trigger()
 		},
 		onSetYuck: function(key, currentStatus) {
+			console.log('onSetYuck',key, currentStatus)
 			this.ingrs = this.ingrs.update(key, function(ing){
 				ing.status = currentStatus === status.YUCK ? status.PASS : status.YUCK
 				return ing
