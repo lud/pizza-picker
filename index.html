@@ -16,7 +16,16 @@
 	color: red;
 	text-decoration: line-through;
 }
+body {
+	font-family: monospace;
+}
 </style>
+
+<h5>TODO</h5>
+<ul>
+	<li>Implement filter buttons</li>
+	<li>Separate ingredients, pizzas and filter-buttons to custom different tags</li>
+</ul>
 
 <h3>Test</h3>
 
@@ -40,11 +49,11 @@
 		// Then add the pizzas. They must have a name and some ingredients. Just
 		// use the keys you've defined in the setIngredients call previously
 		pizzas: [
-			{name:'Kana', ingredients:['tomato', 'cheese'], price:5},
-			{name:'Tron$on',  ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}, url:"http://example.com/"}
+			{name:'Kana', tags:['vgr'],ingredients:['tomato', 'cheese'], price:5},
+			{name:'Tron$on',  tags:['notHallal'], ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}, url:"http://example.com/"}
 		],
-		// When a pizza is clicked, we can catch the event pizz the pizza to add
-		// further treatment like e.g. addToCart()
+		// When a pizza is clicked, we can catch the event to add further
+		// treatment like e.g. addToCart()
 		events: {
 			clickPizza: function(event) {
 				var pizza = event.item
@@ -60,4 +69,13 @@
 		container: '#p1'
 	})
 	console.log('picker',picker)
+	function loopFilter(time, filter){
+		setTimeout(function(){
+			picker.toggleFilter(filter)
+			loopFilter(time, filter)
+		}, time)
+	}
+	loopFilter(1500, 'veggie')
+	loopFilter(1400, 'hallal')
 </script>
+

@@ -6,7 +6,7 @@ var sortBy = require('helpers/sortby')
 
 var status = require('constants').status
 
-var Pizza = Immutable.Record({price:0, score:0, ingredients:[], name:"", url:'#'})
+var Pizza = Immutable.Record({price:0, score:0, ingredients:[], name:"", url:'#', tags:[]})
 
 var DEBUG = !true
 
@@ -18,9 +18,10 @@ module.exports = function(api, opts) {
 			this.diameters = Immutable.List(computeDiameters(opts.pizzas)).sort()
 			console.log('diameters',this.diameters.toJS())
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
+			this.filters = opts.filters
+			this.enabledFilters = {}
 		},
 		onSetYummy: function(key, currentStatus) {
-			console.log('onSetYummy',key, currentStatus)
 			this.ingrs = this.ingrs.update(key, function(ing){
 				ing.status = currentStatus === status.YUMMY ? status.PASS : status.YUMMY
 				return ing
@@ -28,12 +29,17 @@ module.exports = function(api, opts) {
 			this.trigger()
 		},
 		onSetYuck: function(key, currentStatus) {
-			console.log('onSetYuck',key, currentStatus)
 			this.ingrs = this.ingrs.update(key, function(ing){
 				ing.status = currentStatus === status.YUCK ? status.PASS : status.YUCK
 				return ing
 			})
 			this.trigger()
+		},
+		onToggleFilter: function(key) {
+			if (this.filters[key]) {
+				this.toggleFilter(key)
+				this.trigger()
+			}
 		},
 		getDiameters: function() {
 			return this.diameters.toJS()
@@ -54,16 +60,24 @@ module.exports = function(api, opts) {
 			DEBUG && console.log("BEFORE CALC", this.pizzas.map(function(p){
 				DEBUG && console.log('INGS', p.ingredients)
 			}))
-			return this.pizzas
+			var pizzas = this.pizzas
 				// 1. Compute pizzas score
 				.map(this.setScore)
-				// 2. Filter out pizzas with score < 0
+				// Filter out pizzas with score < 0
 				.filter(this.scoreFilter)
-				// 3. Sort by score desc
-				.sort(sortBy(p => p.score ))
+			// Apply custom filters, pizzas is the accumulator of the reduction,
+			// and the list of filter is iterated
+			// pizzas = this.getEnabledFilters().reduce((pizzas, f) => pizzas.filter(f), pizzas)
+			pizzas = this.getEnabledFilters().reduce(function(pizzas, f){
+				return pizzas.filter(f)
+			}, pizzas)
+				// Sort by score desc
+			pizzas = pizzas.sort(sortBy(p => p.score ))
+				// higher scores first : reverse !
 				.reverse()
-				// 4. Set the real ingredients
+				// Set the real ingredients
 				.map(this.setIngredients)
+			return pizzas
 		},
 		getRankedPizzas: function() {
 			var calculated = this.calcRankedPizzas()
@@ -89,6 +103,26 @@ module.exports = function(api, opts) {
 		},
 		scoreFilter: function(pizza) {
 			return pizza.score >= 0
+		},
+		isFilterEnabled: function(key) {
+			// console.log('this.enabledFilters', this.enabledFilters)
+			return !!this.enabledFilters[key]
+		},
+		toggleFilter: function(key) {
+			this.enabledFilters[key] = !this.isFilterEnabled(key)
+
+			console.log (
+				" -> filter '" + key + "' is now "
+				+ (this.isFilterEnabled(key) ? "en" : "dis") + "abled"
+			)
+		},
+		getEnabledFilters: function() {
+			return Object.keys(this.enabledFilters)
+				.filter(key => this.isFilterEnabled(key))
+				.map(key => this.filters[key])
+		},
+		DEBUG_getEnabledFiltersKeys: function() {
+			return Object.keys(this.enabledFilters)
 		}
 	})
 }

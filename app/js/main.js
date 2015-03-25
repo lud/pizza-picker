@@ -43,6 +43,7 @@ function defaultOpts () {
 	return {
 		ingredients:{},
 		pizzas:[],
+		filters:{},
 		locale:'en',
 		container:'pizzapicker',
 		events:{},
@@ -60,6 +61,25 @@ function defaultEvents () {
 	}
 }
 
+PizzaPicker.filter = {
+	taggedOnly: function(tag) {
+		// keeps only the pizza if it has the tag
+		return pizzaHasTagFun(tag, true)
+	},
+	hideTagged: function(tag) {
+		// keeps only the pizza if it has NOT the tag
+		return pizzaHasTagFun(tag, false)
+	}
+}
+
+// return a function accepting a pizza and returns <ret> if the pizza has the
+// given tag, returns !<ret> if not
+function pizzaHasTagFun(tag, ret) {
+	return function(pizza) {
+		var hasTag = pizza.tags.indexOf(tag) !== -1
+		return hasTag ? ret : !ret
+	}
+}
 
 // Export the object
 

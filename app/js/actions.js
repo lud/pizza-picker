@@ -2,7 +2,9 @@
 var Reflux = require('reflux')
 
 module.exports = function(){
-	return Reflux.createActions([
-		'setYummy', 'setYuck'
+	var actions = Reflux.createActions([
+		'setYummy', 'setYuck', 'toggleFilter'
 	])
+	actions.toggleFilter.sync = true
+	return actions
 }
