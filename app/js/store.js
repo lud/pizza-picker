@@ -6,7 +6,7 @@ var sortBy = require('helpers/sortby')
 
 var status = require('constants').status
 
-var Pizza = Immutable.Record({price:0, score:0, ingredients:[], name:""})
+var Pizza = Immutable.Record({price:0, score:0, ingredients:[], name:"", url:'#'})
 
 var DEBUG = !true
 
@@ -16,6 +16,7 @@ module.exports = function(api, opts) {
 		init: function(){
 			this.ingrs = Immutable.Map(opts.ingredients).map(makeIngredient)
 			this.diameters = Immutable.List(computeDiameters(opts.pizzas)).sort()
+			console.log('diameters',this.diameters.toJS())
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
 		},
 		onSetYummy: function(key, currentStatus) {
@@ -118,10 +119,8 @@ function computeDiameters(pizzas) {
 		}
 	})
 	var diameters = []
-	for (var k in reg) if (reg.hasOwnProperty(k)) {
-		diameters.push(k)
-	}
-	return diameters
+	for (var k in reg) if (reg.hasOwnProperty(k)) diameters.push(k)
+	return Object.keys(reg)
 }
 
 var getScore = (function(){

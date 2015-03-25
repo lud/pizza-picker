@@ -10,6 +10,7 @@ module.exports = function(store, actions, opts, lc) {
 			lc:lc
 		},
 		actions:actions,
+		events: opts.events,
 		store:store
 	}
 

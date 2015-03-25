@@ -41,12 +41,20 @@
 		// use the keys you've defined in the setIngredients call previously
 		pizzas: [
 			{name:'Kana', ingredients:['tomato', 'cheese'], price:5},
-			{name:'Tron$on',  ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}}
+			{name:'Tron$on',  ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}, url:"http://example.com/"}
 		],
+		// When a pizza is clicked, we can catch the event pizz the pizza to add
+		// further treatment like e.g. addToCart()
 		events: {
-			clickPizza: function(pizza){
-				console.log('clicked on ' + pizza.name)
+			clickPizza: function(event) {
+				var pizza = event.item
+				console.log('clicked on pizza', pizza)
 			}
+		},
+		// We can add filters to the app
+		filters: {
+			veggie: PizzaPicker.filter.taggedOnly('vgr'),
+			hallal: PizzaPicker.filter.hideTagged('notHallal')
 		},
 		// Finally, render the picker in a div #p1
 		container: '#p1'

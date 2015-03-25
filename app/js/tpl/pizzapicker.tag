@@ -17,7 +17,7 @@ var status = require('constants').status
 
 		<ul>
 			<li each={ pizzas }>
-				<span>{ name }</span>
+				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name }</a>
 				<small>{  parent.formatIngredientsList(ingredients) }</small>
 			</li>
 		</ul>
@@ -31,6 +31,7 @@ var status = require('constants').status
 
 		// defines lc, ...
 		extend(this, opts.helpers)
+		extend(this, {userEvents: opts.events})
 
 		// listen to the store
 		this.on('mount',function(){

@@ -15,15 +15,8 @@ PizzaPicker.create = function(_opts) {
 
 	var api = makeActions()
 
-
-	var defaultOpts = {
-		ingredients:{},
-		pizzas:[],
-		locale:'en',
-		container:'pizzapicker',
-	}
-
-	var opts = extend(defaultOpts, _opts)
+	var opts = extend(defaultOpts(), _opts)
+	opts.events = extend(defaultEvents(), opts.events)
 
 	// the app sort pizzas in reverse score, so we reverse them first so they
 	// appear on load with order set by the user
@@ -44,6 +37,27 @@ PizzaPicker.create = function(_opts) {
 	picker.trigger()
 
 	return api
+}
+
+function defaultOpts () {
+	return {
+		ingredients:{},
+		pizzas:[],
+		locale:'en',
+		container:'pizzapicker',
+		events:{},
+		renderIngredients: true,
+		renderPizzas: true,
+		renderFilters: true
+	}
+}
+
+function noop() {}
+
+function defaultEvents () {
+	return {
+		clickPizza: noop
+	}
 }
 
 
