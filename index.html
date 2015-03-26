@@ -9,8 +9,11 @@
 	color:grey;
 	text-decoration: none;
 }
-.pizza-picker li.status-yummy a.up {
+.pizza-picker li.status-yummy a.yum {
 	color:pink;
+}
+.pizza-picker li.status-yuck a.yuck {
+	color:red;
 }
 .pizza-picker li.status-yuck {
 	color: red;
@@ -23,7 +26,6 @@ body {
 
 <h5>TODO</h5>
 <ul>
-	<li>Implement filter buttons</li>
 	<li>Separate ingredients, pizzas and filter-buttons to custom different tags</li>
 	<li>Ability to pin a pizza on top</li>
 </ul>
@@ -76,7 +78,7 @@ body {
 			loopFilter(time, filter)
 		}, time)
 	}
-	loopFilter(1500, 'veggie')
-	loopFilter(1400, 'hallal')
+	// loopFilter(1500, 'veggie')
+	// loopFilter(1400, 'hallal')
 </script>
 

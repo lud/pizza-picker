@@ -1,4 +1,3 @@
-
 var extend = require('extend')
 var Immutable = require('immutable')
 var Reflux = require('reflux')
@@ -19,8 +18,9 @@ module.exports = function(api, opts) {
 			this.diameters = computeDiameters(opts.pizzas).sort()
 			console.log('diameters',this.diameters)
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
-			this.filters = oMap(makeFilter, opts.filters)
-			this.enabledFilters = {}
+			// we store an immutable map because we use the Map.filter on each
+			// pizzas calculation to get Enabled filters
+			this.filters = Immutable.Map(opts.filters).map(makeFilter)
 		},
 		onSetYummy: function(key) {
 			var currentStatus = this.ingrs[key].status
@@ -35,7 +35,8 @@ module.exports = function(api, opts) {
 			this.trigger()
 		},
 		onToggleFilter: function(key) {
-			if (this.filters[key]) {
+			var filter = this.filters.get(key)
+			if (filter) {
 				this.toggleFilter(key)
 				this.trigger()
 			}
@@ -53,8 +54,8 @@ module.exports = function(api, opts) {
 		getStatuses: function(){
 			return extend({}, status)
 		},
-		getPizzas: function(){
-			return this.pizzas.toJS()
+		getFilters: function(){
+			return this.filters.toJS()
 		},
 		calcRankedPizzas: function() {
 			DEBUG && console.log("BEFORE CALC", this.pizzas.map(function(p){
@@ -67,10 +68,7 @@ module.exports = function(api, opts) {
 				.filter(this.scoreFilter)
 			// Apply custom filters, pizzas is the accumulator of the reduction,
 			// and the list of filter is iterated
-			// pizzas = this.getEnabledFilters().reduce((pizzas, f) => pizzas.filter(f), pizzas)
-			pizzas = this.getEnabledFilters().reduce(function(pizzas, f){
-				return pizzas.filter(f.fun)
-			}, pizzas)
+			pizzas = this.getEnabledFilters().reduce((pizzas, f) => pizzas.filter(f.fun), pizzas)
 				// Sort by score desc
 			pizzas = pizzas.sort(sortBy(p => p.score ))
 				// higher scores first : reverse !
@@ -104,25 +102,14 @@ module.exports = function(api, opts) {
 		scoreFilter: function(pizza) {
 			return pizza.score >= 0
 		},
-		isFilterEnabled: function(key) {
-			// console.log('this.enabledFilters', this.enabledFilters)
-			return !!this.enabledFilters[key]
-		},
-		toggleFilter: function(key) {
-			this.enabledFilters[key] = !this.isFilterEnabled(key)
-
-			console.log (
-				" -> filter '" + key + "' is now "
-				+ (this.isFilterEnabled(key) ? "en" : "dis") + "abled"
-			)
-		},
 		getEnabledFilters: function() {
-			return Object.keys(this.enabledFilters)
-				.filter(key => this.isFilterEnabled(key))
-				.map(key => this.filters[key])
+			return this.filters.filter(f => f.active)
 		},
-		DEBUG_getEnabledFiltersKeys: function() {
-			return Object.keys(this.enabledFilters)
+		toggleFilter: function (key) {
+			this.filters.update(key, function(f){
+				f.active = !f.active
+				return f
+			})
 		}
 	})
 }
@@ -157,7 +144,11 @@ function makeFilter(term, key) {
 }
 
 function baseFilter(key) {
-	return {fun: k(true), label: ucFirst(key), active: false}
+	return {
+		fun: k(true),
+		name: ucFirst(key),
+		active: false
+	}
 }
 
 function ucFirst(str) {

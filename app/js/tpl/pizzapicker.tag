@@ -8,8 +8,14 @@ var status = require('constants').status
 		<ul>
 			<li each="{ ingredients }" class={ 'status-' + parent.statusClass(status) }>
 				<span>{ name }</span>
-				<a href="#" class="up" onclick={ parent.up }>&hearts;</a>
-				<a href="#" class="down" onclick={ parent.down }>x</a>
+				<a href="#" class="yum" onclick={ parent.yum }>&hearts;</a>
+				<a href="#" class="yuck" onclick={ parent.yuck }>x</a>
+			</li>
+		</ul>
+
+		<ul>
+			<li each={ key, filter in filters } class={ parent.filterCssClass(key, filter) }>
+				<a href={ url } onclick={ parent.toggleFilter }>{ filter.name }</a>
 			</li>
 		</ul>
 
@@ -17,13 +23,6 @@ var status = require('constants').status
 
 		<ul>
 			<li each={ pizzas }>
-				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name }</a>
-				<small>{  parent.formatIngredientsList(ingredients) }</small>
-			</li>
-		</ul>
-
-		<ul>
-			<li each={ buttons }>
 				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name }</a>
 				<small>{  parent.formatIngredientsList(ingredients) }</small>
 			</li>
@@ -48,7 +47,7 @@ var status = require('constants').status
 				var data = {
 					pizzas: opts.store.getRankedPizzas(),
 					ingredients: opts.store.getIngredients(),
-					filters: opts.store.getIngredients()
+					filters: opts.store.getFilters()
 				}
 				self.update(data)
 			});
@@ -60,28 +59,32 @@ var status = require('constants').status
 
 		this.on('update', function() {})
 
-		// Actions events -------------------------------------------------------
+		// Actions events -----------------------------------------------------
 
 		var actions = opts.actions
 
-		this.up = function(evt) {
-			console.log('called', "this.up")
-			evt.preventDefault()
-			var ingredient = this
-			actions.setYummy(ingredient.key)
+		this.yum = function(evt) {
+			actions.setYummy(this.key)
 		}
 
-		this.down = function(evt) {
-			console.log('called', "this.down")
-			evt.preventDefault()
-			var ingredient = this
-			actions.setYuck(ingredient.key)
+		this.yuck = function(evt) {
+			actions.setYuck(this.key)
 		}
 
-		// view helpers ---------------------------------------------------------
+		this.toggleFilter = function(evt) {
+			actions.toggleFilter(this.key)
+		}
+
+		// view helpers -------------------------------------------------------
 
 		this.formatIngredientsList = function(igs) {
 			return igs.map(ig => ig.name).join(', ')
+		}
+
+		this.filterCssClass = function(key, filter) {
+			return ('filter-' + key
+				+ (filter.active ? ' active' : '')
+			)
 		}
 
 		this.statusClass = (function(){
