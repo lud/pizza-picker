@@ -14,25 +14,23 @@ module.exports = function(api, opts) {
 	return window.store = Reflux.createStore({
 		listenables: api,
 		init: function(){
-			this.ingrs = Immutable.Map(opts.ingredients).map(makeIngredient)
-			this.diameters = Immutable.List(computeDiameters(opts.pizzas)).sort()
-			console.log('diameters',this.diameters.toJS())
+			this.ingrs = oMap(makeIngredient, opts.ingredients)
+			this.diameters = computeDiameters(opts.pizzas).sort()
+			console.log('diameters',this.diameters)
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
 			this.filters = opts.filters
 			this.enabledFilters = {}
 		},
-		onSetYummy: function(key, currentStatus) {
-			this.ingrs = this.ingrs.update(key, function(ing){
-				ing.status = currentStatus === status.YUMMY ? status.PASS : status.YUMMY
-				return ing
-			})
+		onSetYummy: function(key) {
+			var currentStatus = this.ingrs[key].status
+			var newstatus = currentStatus === status.YUMMY ? status.PASS : status.YUMMY
+			this.ingrs[key].status = newstatus
 			this.trigger()
 		},
-		onSetYuck: function(key, currentStatus) {
-			this.ingrs = this.ingrs.update(key, function(ing){
-				ing.status = currentStatus === status.YUCK ? status.PASS : status.YUCK
-				return ing
-			})
+		onSetYuck: function(key) {
+			var currentStatus = this.ingrs[key].status
+			var newstatus = currentStatus === status.YUCK ? status.PASS : status.YUCK
+			this.ingrs[key].status = newstatus
 			this.trigger()
 		},
 		onToggleFilter: function(key) {
@@ -45,10 +43,11 @@ module.exports = function(api, opts) {
 			return this.diameters.toJS()
 		},
 		getIngredients: function() {
-			return this.ingrs.toList().toJS()
+			// convert to array
+			return Immutable.Map(this.ingrs).toList().toJS()
 		},
 		getIngredient: function(key) {
-			return this.ingrs.get(key)
+			return this.ingrs[key]
 		},
 		getStatuses: function(){
 			return extend({}, status)
@@ -94,7 +93,7 @@ module.exports = function(api, opts) {
 			DEBUG && console.log('setScore called')
 			var ingrs = this.ingrs
 			var sumScore = function(score, key) {
-				var ingr = ingrs.get(key, {status: status.PASS}) //@todo remove error skipping
+				var ingr = ingrs[key] || {status: status.PASS} //@todo remove error skipping with default value
 				DEBUG && console.log("score of ", ingr.name, " = ",getScore(ingr.status))
 				return score + getScore(ingr.status)
 			}
@@ -125,6 +124,10 @@ module.exports = function(api, opts) {
 			return Object.keys(this.enabledFilters)
 		}
 	})
+}
+
+function oMap(f,o) {
+	return Immutable.Map(o).map(f).toJS()
 }
 
 function makePizza(term) {

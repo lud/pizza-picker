@@ -22,6 +22,13 @@ var status = require('constants').status
 			</li>
 		</ul>
 
+		<ul>
+			<li each={ buttons }>
+				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name }</a>
+				<small>{  parent.formatIngredientsList(ingredients) }</small>
+			</li>
+		</ul>
+
 	</div>
 
 
@@ -40,7 +47,8 @@ var status = require('constants').status
 				// on update, we just put in the state the store data
 				var data = {
 					pizzas: opts.store.getRankedPizzas(),
-					ingredients: opts.store.getIngredients()
+					ingredients: opts.store.getIngredients(),
+					filters: opts.store.getIngredients()
 				}
 				self.update(data)
 			});
@@ -60,14 +68,14 @@ var status = require('constants').status
 			console.log('called', "this.up")
 			evt.preventDefault()
 			var ingredient = this
-			actions.setYummy(ingredient.key, ingredient.status)
+			actions.setYummy(ingredient.key)
 		}
 
 		this.down = function(evt) {
 			console.log('called', "this.down")
 			evt.preventDefault()
 			var ingredient = this
-			actions.setYuck(ingredient.key, ingredient.status)
+			actions.setYuck(ingredient.key)
 		}
 
 		// view helpers ---------------------------------------------------------
