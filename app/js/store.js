@@ -3,6 +3,7 @@ var extend = require('extend')
 var Immutable = require('immutable')
 var Reflux = require('reflux')
 var sortBy = require('helpers/sortby')
+var k = require('helpers/k')
 
 var status = require('constants').status
 
@@ -18,7 +19,7 @@ module.exports = function(api, opts) {
 			this.diameters = computeDiameters(opts.pizzas).sort()
 			console.log('diameters',this.diameters)
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
-			this.filters = opts.filters
+			this.filters = oMap(makeFilter, opts.filters)
 			this.enabledFilters = {}
 		},
 		onSetYummy: function(key) {
@@ -68,7 +69,7 @@ module.exports = function(api, opts) {
 			// and the list of filter is iterated
 			// pizzas = this.getEnabledFilters().reduce((pizzas, f) => pizzas.filter(f), pizzas)
 			pizzas = this.getEnabledFilters().reduce(function(pizzas, f){
-				return pizzas.filter(f)
+				return pizzas.filter(f.fun)
 			}, pizzas)
 				// Sort by score desc
 			pizzas = pizzas.sort(sortBy(p => p.score ))
@@ -142,9 +143,27 @@ function makeIngredient(term, key) {
 		return extend(defaults, term)
 }
 
+
 function baseIngredient(key) {
 	return {status:status.PASS, key:key}
 }
+
+function makeFilter(term, key) {
+	var defaults = baseFilter(key)
+	if (typeof term === 'function')
+		return extend(defaults, {fun:term})
+	else
+		return extend(defaults, term)
+}
+
+function baseFilter(key) {
+	return {fun: k(true), label: ucFirst(key), active: false}
+}
+
+function ucFirst(str) {
+	return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
 
 function computeDiameters(pizzas) {
 	var reg = {}

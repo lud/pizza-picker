@@ -63,7 +63,7 @@ body {
 		},
 		// We can add filters to the app
 		filters: {
-			veggie: PizzaPicker.filter.taggedOnly('vgr'),
+			veggie: {fun: PizzaPicker.filter.taggedOnly('vgr'), label: 'Végé'},
 			hallal: PizzaPicker.filter.hideTagged('notHallal')
 		},
 		// Finally, render the picker in a div #p1
