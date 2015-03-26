@@ -5,34 +5,102 @@
 <title>Demo</title>
 
 <style>
-.pizza-picker li a {
+.pizza-picker {
+	display:block;
+	padding-left:1em;
+}
+.pizza-picker ul, .pizza-picker li {
+	list-style: none outside none;
+	padding:0;
+}
+.pizza-picker a {
 	color:grey;
 	text-decoration: none;
+	font-weight: bold;
 }
-.pizza-picker li.status-yummy a.yum {
+pp-ingredients li.status-yummy a.yum {
 	color:pink;
 }
-.pizza-picker li.status-yuck a.yuck {
+pp-ingredients li.status-yuck a.yuck {
 	color:red;
 }
-.pizza-picker li.status-yuck {
+pp-ingredients li.status-yuck {
 	color: red;
 	text-decoration: line-through;
+}
+pp-filters .active a {
+	color:green;
 }
 body {
 	font-family: monospace;
 }
+pizzapicker div {
+	border:1px solid #aaa;
+}
+
+/** grid  from http://www.responsivegridsystem.com/calculator/ **/
+
+/*  SECTIONS  */
+.grid {
+	clear: both;
+	padding: 0px;
+	margin: 0px;
+}
+
+/*  COLUMN SETUP  */
+.col {
+	display: block;
+	float:left;
+	margin: 1% 0 1% 1.6%;
+}
+.col:first-child { margin-left: 0; }
+
+/*  GROUPING  */
+.group:before,
+.group:after { content:""; display:table; }
+.group:after { clear:both;}
+.group { zoom:1; /* For IE 6/7 */ }
+/*  GRID OF FOUR  */
+.span-4-4 {
+	width: 100%;
+}
+.span-3-4 {
+	width: 74.6%;
+}
+.span-2-4 {
+	width: 49.2%;
+}
+.span-1-4 {
+	width: 23.8%;
+}
+
+/*  GO FULL WIDTH BELOW 480 PIXELS */
+@media only screen and (max-width: 480px) {
+	.col {  margin: 1% 0 1% 0%; }
+	.span-1-4, .span-2-4, .span-3-4, .span-4-4 { width: 100%; }
+}
+
 </style>
 
-<h5>TODO</h5>
+<h3>TODO</h3>
 <ul>
-	<li>Separate ingredients, pizzas and filter-buttons to custom different tags</li>
 	<li>Ability to pin a pizza on top</li>
 </ul>
 
 <h3>Test</h3>
 
-<pizzapicker id="p1"></pizzapicker>
+<div class="grid group">
+	<div class="col span-1-4">
+		<h5>Ingredients</h5>
+		<pp-ingredients class="myPicker"></pp-ingredients>
+		<h5>Filters</h5>
+		<pp-filters class="myPicker"></pp-filters>
+	</div>
+	<div class="col span-3-4 ">
+		<h5>Your selection</h5>
+		<pp-pizzas class="myPicker"></pp-pizzas>
+	</div>
+</div>
 
 <script type="text/javascript" src="dist/pizza-picker.js"></script>
 <script type="text/javascript" src="dist/pizza-picker-lc_fr.js"></script>
@@ -69,7 +137,7 @@ body {
 			hallal: PizzaPicker.filter.hideTagged('notHallal')
 		},
 		// Finally, render the picker in a div #p1
-		container: '#p1'
+		container: '.myPicker'
 	})
 	console.log('picker',picker)
 	function loopFilter(time, filter){

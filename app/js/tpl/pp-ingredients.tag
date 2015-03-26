@@ -2,9 +2,9 @@ var extend = require('extend')
 var status = require('constants').status
 
 
-<pizzapicker>
-	<div class="pizza-picker">
+<pp-ingredients>
 
+	<div class="pizza-picker">
 		<ul>
 			<li each="{ ingredients }" class={ 'status-' + parent.statusClass(status) }>
 				<span>{ name }</span>
@@ -12,24 +12,7 @@ var status = require('constants').status
 				<a href="#" class="yuck" onclick={ parent.yuck }>x</a>
 			</li>
 		</ul>
-
-		<ul>
-			<li each={ key, filter in filters } class={ parent.filterCssClass(key, filter) }>
-				<a href={ url } onclick={ parent.toggleFilter }>{ filter.name }</a>
-			</li>
-		</ul>
-
-		<p>{ lc.selected_pizzas_count(pizzas.length) }</p>
-
-		<ul>
-			<li each={ pizzas }>
-				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name }</a>
-				<small>{  parent.formatIngredientsList(ingredients) }</small>
-			</li>
-		</ul>
-
 	</div>
-
 
 	<script>
 
@@ -77,16 +60,6 @@ var status = require('constants').status
 
 		// view helpers -------------------------------------------------------
 
-		this.formatIngredientsList = function(igs) {
-			return igs.map(ig => ig.name).join(', ')
-		}
-
-		this.filterCssClass = function(key, filter) {
-			return ('filter-' + key
-				+ (filter.active ? ' active' : '')
-			)
-		}
-
 		this.statusClass = (function(){
 			var classes = {}
 			classes[status.YUCK] = 'yuck'
@@ -96,6 +69,7 @@ var status = require('constants').status
 				return classes[status]
 			}
 		}())
+
 	</script>
 
-</pizzapicker>
+</pp-ingredients>
