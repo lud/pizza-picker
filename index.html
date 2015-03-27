@@ -5,9 +5,12 @@
 <title>Demo</title>
 
 <style>
+pp-ingredients, pp-pizzas, pp-filters {
+	display:block;
+}
 .pizza-picker {
 	display:block;
-	padding-left:1em;
+	padding:1em;
 }
 .pizza-picker ul, .pizza-picker li {
 	list-style: none outside none;
@@ -30,6 +33,30 @@ pp-ingredients li.status-yuck {
 }
 pp-filters .active a {
 	color:green;
+}
+pp-pizzas {
+	position: relative;
+}
+pp-pizzas li {
+	background:#eee;
+	line-height: 2em;
+	height:2em;
+	overflow:hidden;
+}
+pp-pizzas li.on, pp-pizzas li.on_to_off, pp-pizzas li.off_to_on.on {
+	/* appear */
+	transition: height 100ms ease-in, opacity 100ms ease-in 150ms;
+	opacity:1;
+	height:2em;
+}
+pp-pizzas li.off, pp-pizzas li.off_to_on, pp-pizzas li.on_to_off.off {
+	/* disappear */
+	transition: height 100ms ease-in 200ms, opacity 200ms ease-in;
+	opacity:0;
+	height:0px;
+}
+pp-pizzas li > * {
+	vertical-align: middle;
 }
 body {
 	font-family: monospace;
@@ -114,6 +141,7 @@ pizzapicker div {
 		ingredients: {
 			tomato: 'Tomato',
 			cheese: 'Emmental',
+			chevre: 'Horny Cheese',
 			ham: 'Ham',
 			shrooms: 'White Mushrooms',
 		},
@@ -121,6 +149,7 @@ pizzapicker div {
 		// use the keys you've defined in the setIngredients call previously
 		pizzas: [
 			{name:'Kana', tags:['vgr'],ingredients:['tomato', 'cheese'], price:5},
+			{name:'Chiz', ingredients:['tomato', 'cheese', 'chevre'], price:5},
 			{name:'Tron$on',  tags:['notHallal'], ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}, url:"http://example.com/"}
 		],
 		// When a pizza is clicked, we can catch the event to add further

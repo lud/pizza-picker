@@ -6,7 +6,7 @@ var k = require('helpers/k')
 
 var status = require('constants').status
 
-var Pizza = Immutable.Record({price:0, score:0, ingredients:[], name:"", url:'#', tags:[]})
+var Pizza = Immutable.Record({price:0, baseScore:0, score:0, ingredients:[], name:"", url:'#', tags:[], accepted:true, prevAccepted:true})
 
 var DEBUG = !true
 
@@ -18,6 +18,7 @@ module.exports = function(api, opts) {
 			this.diameters = computeDiameters(opts.pizzas).sort()
 			console.log('diameters',this.diameters)
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
+			this.ranked = this.pizzas.map(this.setIngredients)
 			// we store an immutable map because we use the Map.filter on each
 			// pizzas calculation to get Enabled filters
 			this.filters = Immutable.Map(opts.filters).map(makeFilter)
@@ -26,18 +27,24 @@ module.exports = function(api, opts) {
 			var currentStatus = this.ingrs[key].status
 			var newstatus = currentStatus === status.YUMMY ? status.PASS : status.YUMMY
 			this.ingrs[key].status = newstatus
+
+			this.setScoredPizzas(true)
 			this.trigger()
 		},
 		onSetYuck: function(key) {
 			var currentStatus = this.ingrs[key].status
 			var newstatus = currentStatus === status.YUCK ? status.PASS : status.YUCK
 			this.ingrs[key].status = newstatus
+
+			this.setScoredPizzas(false)
 			this.trigger()
 		},
 		onToggleFilter: function(key) {
 			var filter = this.filters.get(key)
 			if (filter) {
 				this.toggleFilter(key)
+
+				this.setScoredPizzas(false)
 				this.trigger()
 			}
 		},
@@ -57,30 +64,22 @@ module.exports = function(api, opts) {
 		getFilters: function(){
 			return this.filters.toJS()
 		},
-		calcRankedPizzas: function() {
+		setScoredPizzas: function(doSort) {
+			console.log('do sort : ', doSort)
 			DEBUG && console.log("BEFORE CALC", this.pizzas.map(function(p){
 				DEBUG && console.log('INGS', p.ingredients)
 			}))
 			var pizzas = this.pizzas
-				// 1. Compute pizzas score
+				.map(this.setPrevAccepted)
 				.map(this.setScore)
-				// Filter out pizzas with score < 0
-				.filter(this.scoreFilter)
-			// Apply custom filters, pizzas is the accumulator of the reduction,
-			// and the list of filter is iterated
-			pizzas = this.getEnabledFilters().reduce((pizzas, f) => pizzas.filter(f.fun), pizzas)
-				// Sort by score desc
-			pizzas = pizzas.sort(sortBy(p => p.score ))
-				// higher scores first : reverse !
-				.reverse()
-				// Set the real ingredients
-				.map(this.setIngredients)
-			return pizzas
+				.map(this.setAccepted)
+			pizzas = this.getEnabledFilters().reduce((pizzas, f) => pizzas.map(f.fun), pizzas)
+			if (doSort) pizzas = pizzas.sort(sortBy(p => p.score )).reverse() // sort desc
+			this.pizzas = pizzas
+			this.ranked = pizzas.map(this.setIngredients)
 		},
 		getRankedPizzas: function() {
-			var calculated = this.calcRankedPizzas()
-			DEBUG && console.log('calculated',calculated.toJS())
-			return calculated.toJS()
+			return this.ranked.toJS()
 		},
 		setIngredients: function (pizza) {
 			DEBUG && console.log('setIngredients', pizza.ingredients)
@@ -96,11 +95,14 @@ module.exports = function(api, opts) {
 				DEBUG && console.log("score of ", ingr.name, " = ",getScore(ingr.status))
 				return score + getScore(ingr.status)
 			}
-			pizza = pizza.set('score', pizza.ingredients.reduce(sumScore, pizza.score))
+			pizza = pizza.set('score', pizza.ingredients.reduce(sumScore, pizza.baseScore))
 			return pizza
 		},
-		scoreFilter: function(pizza) {
-			return pizza.score >= 0
+		setAccepted: function(pizza) {
+			return pizza.set('accepted', pizza.score >= 0)
+		},
+		setPrevAccepted: function(pizza) {
+			return pizza.set('prevAccepted', pizza.accepted).set('accepted', true)
 		},
 		getEnabledFilters: function() {
 			return this.filters.filter(f => f.active)
@@ -119,6 +121,7 @@ function oMap(f,o) {
 }
 
 function makePizza(term) {
+	var props = extend({baseScore:term.score},term)
 	return new Pizza(term)
 }
 
