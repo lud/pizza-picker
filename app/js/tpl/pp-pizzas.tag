@@ -5,7 +5,7 @@ var status = require('constants').status
 <pp-pizzas>
 
 	<div class="pizza-picker">
-		<p>{ lc.selected_pizzas_count(pizzas.length) }</p>
+		<p>{ lc.selected_pizzas_count(acceptedPizzas.length) }</p>
 		<ul>
 			<li each={ pizzas } data-score={ score } class="{ parent.getInstantClass(this) } { pizza:1, unaccepted: !accepted }">
 				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name }</a>
@@ -27,8 +27,10 @@ var status = require('constants').status
 			var self = this
 			this.unsubscribe = opts.store.listen(function(){
 				// on update, we just put in the state the store data
+				var pizzas = opts.store.getRankedPizzas()
 				var data = {
-					pizzas: opts.store.getRankedPizzas(),
+					pizzas: pizzas,
+					acceptedPizzas: pizzas.filter(p => p.accepted)
 				}
 				self.update(data)
 			});

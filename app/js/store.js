@@ -18,35 +18,35 @@ module.exports = function(api, opts) {
 			this.diameters = computeDiameters(opts.pizzas).sort()
 			console.log('diameters',this.diameters)
 			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
-			this.ranked = this.pizzas.map(this.setIngredients)
-			// we store an immutable map because we use the Map.filter on each
-			// pizzas calculation to get Enabled filters
 			this.filters = Immutable.Map(opts.filters).map(makeFilter)
+			this.storePizzasForExt()
 		},
 		onSetYummy: function(key) {
 			var currentStatus = this.ingrs[key].status
 			var newstatus = currentStatus === status.YUMMY ? status.PASS : status.YUMMY
 			this.ingrs[key].status = newstatus
 
-			this.setScoredPizzas(true)
-			this.trigger()
+			this.setScoredPizzas().sortPizzas().fireTrigger()
 		},
 		onSetYuck: function(key) {
 			var currentStatus = this.ingrs[key].status
 			var newstatus = currentStatus === status.YUCK ? status.PASS : status.YUCK
 			this.ingrs[key].status = newstatus
 
-			this.setScoredPizzas(false)
-			this.trigger()
+			this.setScoredPizzas().fireTrigger()
 		},
 		onToggleFilter: function(key) {
 			var filter = this.filters.get(key)
 			if (filter) {
 				this.toggleFilter(key)
 
-				this.setScoredPizzas(false)
-				this.trigger()
+				this.setScoredPizzas().fireTrigger()
 			}
+		},
+		fireTrigger: function() {
+			// before triggering, we store the
+			this.storePizzasForExt()
+			this.trigger()
 		},
 		getDiameters: function() {
 			return this.diameters.toJS()
@@ -64,8 +64,7 @@ module.exports = function(api, opts) {
 		getFilters: function(){
 			return this.filters.toJS()
 		},
-		setScoredPizzas: function(doSort) {
-			console.log('do sort : ', doSort)
+		setScoredPizzas: function() {
 			DEBUG && console.log("BEFORE CALC", this.pizzas.map(function(p){
 				DEBUG && console.log('INGS', p.ingredients)
 			}))
@@ -74,12 +73,21 @@ module.exports = function(api, opts) {
 				.map(this.setScore)
 				.map(this.setAccepted)
 			pizzas = this.getEnabledFilters().reduce((pizzas, f) => pizzas.map(f.fun), pizzas)
-			if (doSort) pizzas = pizzas.sort(sortBy(p => p.score )).reverse() // sort desc
 			this.pizzas = pizzas
-			this.ranked = pizzas.map(this.setIngredients)
+			return this
+		},
+		storePizzasForExt: function() {
+			// the pizzas for external use have the real ingredients objects
+			// associated
+			this.extPizzas = this.pizzas.map(this.setIngredients)
+		},
+		sortPizzas: function() {
+			console.log('sorting')
+			this.pizzas = this.pizzas.sort(sortBy(p => p.score )).reverse() // sort desc
+			return this
 		},
 		getRankedPizzas: function() {
-			return this.ranked.toJS()
+			return this.extPizzas.toJS()
 		},
 		setIngredients: function (pizza) {
 			DEBUG && console.log('setIngredients', pizza.ingredients)
