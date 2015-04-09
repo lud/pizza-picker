@@ -8,7 +8,7 @@ var status = require('constants').status
 		<p>{ lc.selected_pizzas_count(acceptedPizzas.length) }</p>
 		<ul>
 			<li each={ pizzas } data-score={ score } class="{ parent.getInstantClass(this) } { pizza:1, unaccepted: !accepted }">
-				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name }</a>
+				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name } { score }</a>
 				<small>{  parent.formatIngredientsList(ingredients) }</small>
 			</li>
 		</ul>
@@ -64,7 +64,7 @@ var status = require('constants').status
 		// view helpers -------------------------------------------------------
 
 		this.formatIngredientsList = function(igs) {
-			return igs.map(ig => ig.name).join(', ')
+			return igs.map(ig => ig.name + ' ' + ig.status).join(', ')
 		}
 
 

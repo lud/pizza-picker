@@ -1,5 +1,1 @@
-module.exports = function(k, undefined) {
-	return function(o) {
-		return o[k] || undefined
-	}
-}
+module.exports = k => o => o[k]

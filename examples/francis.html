@@ -130,53 +130,31 @@ pizzapicker div {
 	</div>
 </div>
 
-<script type="text/javascript" src="dist/pizza-picker.js"></script>
-<script type="text/javascript" src="dist/pizza-picker-lc_fr.js"></script>
+<script type="text/javascript" src="//cdn.rawgit.com/yanatan16/nanoajax/master/nanoajax.min.js"></script>
+<script type="text/javascript" src="../dist/pizza-picker.js"></script>
+<script type="text/javascript" src="../dist/pizza-picker-lc_fr.js"></script>
 <script type="text/javascript">
 
-	// Create a picker
-	var picker = PizzaPicker.create({
-		locale:'fr',
-		// Then set the ingredients. It's an object with simple keys mapping to
-		// display names for the ingredients.
-		ingredients: {
-			tomato: 'Tomato',
-			cheese: 'Emmental',
-			chevre: 'Horny Cheese',
-			ham: 'Ham',
-			shrooms: 'White Mushrooms',
-		},
-		// Then add the pizzas. They must have a name and some ingredients. Just
-		// use the keys you've defined in the setIngredients call previously
-		pizzas: [
-			{name:'Kana', tags:['vgr'],ingredients:['tomato', 'cheese'], price:5},
-			{name:'Chiz', ingredients:['tomato', 'cheese', 'chevre'], price:5},
-			{name:'Tron$on',  tags:['notHallal'], ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}, url:"http://example.com/"}
-		],
-		// When a pizza is clicked, we can catch the event to add further
-		// treatment like e.g. addToCart()
-		events: {
-			clickPizza: function(event) {
-				var pizza = event.item
-				console.log('clicked on pizza', pizza)
-			}
-		},
-		// We can add filters to the app
-		filters: {
-			veggie: {fun: PizzaPicker.filter.taggedOnly('vgr'), label: 'Végé'},
-			hallal: PizzaPicker.filter.hideTagged('notHallal')
-		},
-		// Finally, render the picker in a div #p1
-		container: '.myPicker'
+
+	nanoajax.ajax('./data/pzfrcs.json', function (code, responseText) {
+		var data = JSON.parse(responseText)
+		// Create a picker
+		var picker = PizzaPicker.create({
+			locale:'fr',
+			ingredients: data.ingredients,
+			pizzas: data.pizzas,
+			events: {
+				clickPizza: function(event) {
+					var pizza = event.item
+					console.log('clicked on pizza', pizza)
+				}
+			},
+			filters: {
+				veggie: {fun: PizzaPicker.filter.taggedOnly('vgr'), label: 'Végé'},
+				hallal: PizzaPicker.filter.hideTagged('notHallal')
+			},
+			container: '.myPicker'
+		})
 	})
-	console.log('picker',picker)
-	function loopFilter(time, filter){
-		setTimeout(function(){
-			picker.toggleFilter(filter)
-			loopFilter(time, filter)
-		}, time)
-	}
-	// loopFilter(1500, 'veggie')
-	// loopFilter(1400, 'hallal')
 </script>
 

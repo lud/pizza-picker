@@ -33,7 +33,7 @@ module.exports = function(api, opts) {
 			var newstatus = currentStatus === status.YUCK ? status.PASS : status.YUCK
 			this.ingrs[key].status = newstatus
 
-			this.setScoredPizzas().fireTrigger()
+			this.setScoredPizzas().sortPizzas().fireTrigger()
 		},
 		onToggleFilter: function(key) {
 			var filter = this.filters.get(key)
@@ -82,8 +82,7 @@ module.exports = function(api, opts) {
 			this.extPizzas = this.pizzas.map(this.setIngredients)
 		},
 		sortPizzas: function() {
-			console.log('sorting')
-			this.pizzas = this.pizzas.sort(sortBy(p => p.score )).reverse() // sort desc
+			this.pizzas = this.pizzas.sort(sortBy().desc('score').asc('name'))
 			return this
 		},
 		getRankedPizzas: function() {
