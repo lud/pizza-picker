@@ -1,14 +1,20 @@
 var get = require('helpers/get')
 
-function sortBy(callback) {
-	var f = callback
-	// si on a simplement passé une clé, la fonction a appeler sur l'objet
-	// sert à récupérer la clé
-	if (typeof callback === 'string') f = get(callback)
+function sortBy() {
+	var funs = Array.prototype.slice.call(arguments).map(function(callback){
+		// substitute a string to a callback to define a property getter
+		return (typeof callback === 'string') ? get(callback) : callback
+	})
 	return function(objA, objB) {
-		var a = f(objA), b = f(objB)
-		if (a < b) return -1
-		if (a > b) return 1
+		var i = 0, f
+		while(funs[i]) {
+			f = funs[i]
+			var a = f(objA), b = f(objB)
+			if (a < b) return -1
+			if (a > b) return 1
+			// try another callback
+			i += 1
+		}
 		return 0
 	}
 }
