@@ -58,6 +58,14 @@ pp-pizzas li.off, pp-pizzas li.off_to_on, pp-pizzas li.on_to_off.off {
 pp-pizzas li > * {
 	vertical-align: middle;
 }
+pp-pizzas .ingredient:not(:last-child)::after {
+	content: ', '
+}
+pp-pizzas .ingredient .status-yummy {
+	color:green;
+	text-shadow: 0 0 0.2em lightgreen, 0 0 0.2em lightgreen;
+
+}
 body {
 	font-family: monospace;
 }

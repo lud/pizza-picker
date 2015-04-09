@@ -14,8 +14,6 @@ var status = require('constants').status
 
 	<script>
 
-		console.log('filter opts', opts)
-
 		var self = this
 
 		// defines lc, ...

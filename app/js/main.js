@@ -30,7 +30,6 @@ PizzaPicker.create = function(_opts) {
 	// initialisation of the view
 
 	var view = makeView(picker, api, opts, locale)
-	console.log('view',view)
 
 	// our exported api is an objet of Reflux actions
 	//

@@ -1,5 +1,5 @@
 var extend = require('extend')
-var status = require('constants').status
+var statusClasses = require('constants').statusAtoms
 
 
 <pp-pizzas>
@@ -9,7 +9,8 @@ var status = require('constants').status
 		<ul>
 			<li each={ pizzas } data-score={ score } class="{ parent.getInstantClass(this) } { pizza:1, unaccepted: !accepted }">
 				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name } { score }</a>
-				<small>{  parent.formatIngredientsList(ingredients) }</small>
+				<small each={ parent.setCommas(ingredients) } class="{ingredient:1}">
+					<span class="status-{ parent.parent.statusClass(status) }">{ name }</span></small>
 			</li>
 		</ul>
 	</div>
@@ -46,10 +47,8 @@ var status = require('constants').status
 				var nodes = Array.prototype.slice.call(self.root.getElementsByTagName('li'))
 				nodes.map(function(li){
 					if (/on_to_off/.test(li.className)) {
-						console.log('li',li)
 						li.className += ' off'
 					} else if (/off_to_on/.test(li.className)) {
-						console.log('li',li)
 						li.className += ' on'
 					}
 				})
@@ -67,6 +66,16 @@ var status = require('constants').status
 			return igs.map(ig => ig.name + ' ' + ig.status).join(', ')
 		}
 
+		this.setCommas = function(ingredients) {
+			var last = ingredients.pop()
+			return ingredients.map(function(ig){
+				return extend({comma:true}, ig)
+			}).concat([last])
+		}
+
+		this.statusClass = function(status) {
+			return statusClasses[status]
+		}
 
 		this.getInstantClass = function(it) {
 			// elements that remain the same

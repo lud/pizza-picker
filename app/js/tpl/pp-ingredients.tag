@@ -1,5 +1,5 @@
 var extend = require('extend')
-var status = require('constants').status
+var statusClasses = require('constants').statusAtoms
 
 
 <pp-ingredients>
@@ -60,15 +60,9 @@ var status = require('constants').status
 
 		// view helpers -------------------------------------------------------
 
-		this.statusClass = (function(){
-			var classes = {}
-			classes[status.YUCK] = 'yuck'
-			classes[status.YUMMY] = 'yummy'
-			classes[status.PASS] = 'pass'
-			return function(status) {
-				return classes[status]
-			}
-		}())
+		this.statusClass = function(status) {
+			return statusClasses[status]
+		}
 
 	</script>
 
