@@ -8,7 +8,7 @@ var statusClasses = require('constants').statusAtoms
 		<p>{ lc.selected_pizzas_count(acceptedPizzas.length) }</p>
 		<ul>
 			<li each={ pizzas } data-score={ score } class="{ parent.getInstantClass(this) } { pizza:1, unaccepted: !accepted }">
-				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name } { score }</a>
+				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name }</a>
 				<small each={ ingredients } class="{ingredient:1}">
 					<span class="status-{ parent.parent.statusClass(status) }">{ name }</span></small>
 			</li>
