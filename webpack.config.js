@@ -6,7 +6,7 @@ console.log("@envify transform webpack")
 
 
 dotenv.load()
-console.log('APP_ENV=', process.env.APP_ENV)
+console.log('APP_DEBUG=', process.env.APP_DEBUG)
 
 function env(x) {
 	return process.env[x]
@@ -30,7 +30,8 @@ module.exports = {
 			{ test: /\.tag$/, exclude: /node_modules/, loader: 'riotjs-loader', query: { type: 'none' } }
 		],
 		loaders: [
-			{ test: /\.js|\.tag$/, exclude: /node_modules/, loader: 'babel-loader'}
+			{ test: /\.js|\.tag$/, exclude: /node_modules/, loader: 'babel-loader'},
+			{ test: /\.js$/, loader: "envify-loader" }
 		]
 	},
 	amd: {phoenix: false},

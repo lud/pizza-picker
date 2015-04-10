@@ -9,7 +9,7 @@ var statusClasses = require('constants').statusAtoms
 		<ul>
 			<li each={ pizzas } data-score={ score } class="{ parent.getInstantClass(this) } { pizza:1, unaccepted: !accepted }">
 				<a href={ url } onclick={ parent.userEvents.clickPizza }>{ name } { score }</a>
-				<small each={ parent.setCommas(ingredients) } class="{ingredient:1}">
+				<small each={ ingredients } class="{ingredient:1}">
 					<span class="status-{ parent.parent.statusClass(status) }">{ name }</span></small>
 			</li>
 		</ul>
@@ -61,17 +61,6 @@ var statusClasses = require('constants').statusAtoms
 		var actions = opts.actions
 
 		// view helpers -------------------------------------------------------
-
-		this.formatIngredientsList = function(igs) {
-			return igs.map(ig => ig.name + ' ' + ig.status).join(', ')
-		}
-
-		this.setCommas = function(ingredients) {
-			var last = ingredients.pop()
-			return ingredients.map(function(ig){
-				return extend({comma:true}, ig)
-			}).concat([last])
-		}
 
 		this.statusClass = function(status) {
 			return statusClasses[status]

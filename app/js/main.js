@@ -1,5 +1,6 @@
 
-var Reflux = require('reflux')
+process.env.APP_DEBUG && console.warn('Pizza Picker runs in debug mode')
+
 var extend = require('extend')
 var makeActions = require('actions')
 var makeStore = require('store')
