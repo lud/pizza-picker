@@ -41,7 +41,7 @@ module.exports = {
 	externals: {
 		gcconf: "var window.GConf",
 	},
-	devtool: '#eval-source-map',
+	devtool: process.env.APP_DEBUG ? '#eval-source-map' : this.undefined,
 	plugins: [
 		new webpack.ProvidePlugin({riot: 'riot'}),
 		new webpack.optimize.OccurenceOrderPlugin(true),
