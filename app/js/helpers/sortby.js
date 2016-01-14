@@ -1,7 +1,6 @@
 var get = require('helpers/get')
 
 function maybeWrap(callback) {
-	// substitute a string to a callback to define a property getter
 	return (typeof callback === 'string') ? get(callback) : callback
 }
 

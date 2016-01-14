@@ -1,191 +1,101 @@
-var extend = require('extend')
-var Immutable = require('immutable')
-var Reflux = require('reflux')
-var sortBy = require('helpers/sortby')
-var k = require('helpers/k')
+import {status} from 'constants'
+let Reflux = require('reflux')
+let sortby = require('helpers/sortby')
+let m = require('mithril')
+let omap = require('helpers/omap')
+let assert = require('helpers/assert')
+let ovals = require('helpers/ovals')
+let extend = require('extend')
+let get = require('helpers/get')
 
-var status = require('constants').status
 
-var Pizza = Immutable.Record({price:0, baseScore:0, score:0, ingredients:[], name:"", url:'#', tags:[], accepted:true, prevAccepted:true})
+let model = {}
 
-var DEBUG = !true
-
-module.exports = function(api, opts) {
-	return window.store = Reflux.createStore({
-		listenables: api,
-		init: function(){
-			this.ingrs = oMap(makeIngredient, opts.ingredients)
-			this.diameters = computeDiameters(opts.pizzas).sort()
-			console.log('diameters',this.diameters)
-			this.pizzas = Immutable.List(opts.pizzas).map(makePizza)
-			this.filters = Immutable.Map(opts.filters).map(makeFilter)
-			this.storePizzasForExt()
+model.make = function(api, opts) {
+	let ingredients = omap(opts.ingredients, ingredient)
+	let pizzas = opts.pizzas.map(function(def){
+		let ingrs = findAllIngredients(ingredients, def.ingredients)
+		let def2 = extend({}, def)
+		def2.ingredients = findAllIngredients(ingredients, def.ingredients)
+		return pizza(def2)
+	})
+	let filters = []
+	let ingredientsList = ovals(ingredients).sort()
+	return Reflux.createStore({
+		init: function() {
+			this.listenToMany(api)
 		},
-		onSetYummy: function(key) {
-			var currentStatus = this.ingrs[key].status
-			var newstatus = currentStatus === status.YUMMY ? status.PASS : status.YUMMY
-			this.ingrs[key].status = newstatus
-
-			this.setScoredPizzas().sortPizzas().fireTrigger()
+		ingredients: () => ingredientsList,
+		pizzas: function() {
+			return pizzas
+				// .filter(p => p.visible())
+				.sort(sortby().desc(p => p.score()).asc('name'))
 		},
-		onSetYuck: function(key) {
-			var currentStatus = this.ingrs[key].status
-			var newstatus = currentStatus === status.YUCK ? status.PASS : status.YUCK
-			this.ingrs[key].status = newstatus
-
-			this.setScoredPizzas().sortPizzas().fireTrigger()
-		},
-		onToggleFilter: function(key) {
-			var filter = this.filters.get(key)
-			if (filter) {
-				this.toggleFilter(key)
-
-				this.setScoredPizzas().fireTrigger()
-			}
-		},
-		fireTrigger: function() {
-			// before triggering, we store the
-			this.storePizzasForExt()
+		onToggleYummy: function(ing) {
+			ing.toggleYummy()
+			this.computePizzas()
 			this.trigger()
 		},
-		getDiameters: function() {
-			return this.diameters.toJS()
+		onToggleYuck: function(ing) {
+			ing.toggleYuck()
+			this.computePizzas()
+			this.trigger()
 		},
-		getIngredients: function() {
-			// convert to array
-			return Immutable.Map(this.ingrs).toList().toJS()
-		},
-		getIngredient: function(key) {
-			return this.ingrs[key]
-		},
-		getStatuses: function(){
-			return extend({}, status)
-		},
-		getFilters: function(){
-			return this.filters.toJS()
-		},
-		setScoredPizzas: function() {
-			DEBUG && console.log("BEFORE CALC", this.pizzas.map(function(p){
-				DEBUG && console.log('INGS', p.ingredients)
-			}))
-			var pizzas = this.pizzas
-				.map(this.setPrevAccepted)
-				.map(this.setScore)
-				.map(this.setAccepted)
-			pizzas = this.getEnabledFilters().reduce((pizzas, f) => pizzas.map(f.fun), pizzas)
-			this.pizzas = pizzas
-			return this
-		},
-		storePizzasForExt: function() {
-			// the pizzas for external use have the real ingredients objects
-			// associated
-			this.extPizzas = this.pizzas.map(this.setIngredients)
-		},
-		sortPizzas: function() {
-			this.pizzas = this.pizzas.sort(sortBy().desc('score').asc('name'))
-			return this
-		},
-		getRankedPizzas: function() {
-			return this.extPizzas.toJS()
-		},
-		setIngredients: function (pizza) {
-			DEBUG && console.log('setIngredients', pizza.ingredients)
-			pizza = pizza.set('ingredients', pizza.ingredients.map(this.getIngredient))
-			DEBUG && console.log(' -> ', pizza.ingredients)
-			return pizza
-		},
-		setScore: function (pizza) {
-			DEBUG && console.log('setScore called')
-			var ingrs = this.ingrs
-			var sumScore = function(score, key) {
-				var ingr = ingrs[key] || {status: status.PASS} //@todo remove error skipping with default value
-				DEBUG && console.log("score of ", ingr.name, " = ",getScore(ingr.status))
-				return score + getScore(ingr.status)
-			}
-			pizza = pizza.set('score', pizza.ingredients.reduce(sumScore, pizza.baseScore))
-			return pizza
-		},
-		setAccepted: function(pizza) {
-			return pizza.set('accepted', pizza.score >= 0)
-		},
-		setPrevAccepted: function(pizza) {
-			return pizza.set('prevAccepted', pizza.accepted).set('accepted', true)
-		},
-		getEnabledFilters: function() {
-			return this.filters.filter(f => f.active)
-		},
-		toggleFilter: function (key) {
-			this.filters.update(key, function(f){
-				f.active = !f.active
-				return f
-			})
+		computePizzas: function() {
+			pizzas.forEach(p => p.compute())
 		}
 	})
 }
 
-function oMap(f,o) {
-	return Immutable.Map(o).map(f).toJS()
-}
+module.exports = model
 
-function makePizza(term) {
-	var props = extend({baseScore:term.score},term)
-	return new Pizza(term)
-}
-
-function makeIngredient(term, key) {
-	var defaults = baseIngredient(key)
-	if (typeof term === 'string')
-		return extend(defaults, {name:term})
-	else
-		return extend(defaults, term)
-}
-
-
-function baseIngredient(key) {
-	return {status:status.PASS, key:key}
-}
-
-function makeFilter(term, key) {
-	var defaults = baseFilter(key)
-	if (typeof term === 'function')
-		return extend(defaults, {fun:term})
-	else
-		return extend(defaults, term)
-}
-
-function baseFilter(key) {
-	return {
-		fun: k(true),
-		name: ucFirst(key),
-		active: false
+// pizza model, receives all pizza properties from the user spec, but
+// .ingredients are models
+let pizza = function(pizza) {
+	pizza.wasVisible = m.prop(false)
+	pizza.visible = m.prop(true)
+	pizza.checkVisible = function() {
+		pizza.wasVisible(pizza.visible())
+		// a pizza is visible if neither of its ingredients have a YUCK status
+		console.log('pizzas.ingredients', pizza.ingredients.map(it => it.status()))
+		return pizza.visible(! pizza.ingredients.some(i => i.status() === status.YUCK))
 	}
+	pizza.calcScore = function() {
+		// Yummy ingredients score 1, others score 0
+		return pizza.score(pizza.ingredients
+			.map(ing => Number(ing.status() === status.YUMMY))
+			.reduce((sum, score) => sum + score))
+	}
+	pizza.score = m.prop()
+	pizza.calcScore()
+	pizza.compute = function() {
+		pizza.checkVisible()
+		pizza.calcScore()
+	}
+	return pizza
 }
 
-function ucFirst(str) {
-	return str.charAt(0).toUpperCase() + str.slice(1)
+let ingredient = function(name) {
+	let ing = {
+		name: name
+	}
+	ing.status = m.prop(status.PASS)
+	ing.toggleYummy = function(){
+		ing.status(ing.status() === status.YUMMY ? status.PASS : status.YUMMY)
+	}
+	ing.toggleYuck = function(){
+		ing.status(ing.status() === status.YUCK ? status.PASS : status.YUCK)
+	}
+	return ing
 }
 
 
-function computeDiameters(pizzas) {
-	var reg = {}
-	pizzas.forEach(function(p){
-		if (typeof p.price === 'object') {
-			for (var k in p.price) if (p.price.hasOwnProperty(k)) {
-				reg[k] = true
-			}
-		}
+function findAllIngredients (ingrs, keys) {
+	let found = []
+	keys.forEach(function(k){
+		assert (ingrs[k] !== void 0, "Ingredient '%s' not found", k)
+		found.push(ingrs[k])
 	})
-	var diameters = []
-	for (var k in reg) if (reg.hasOwnProperty(k)) diameters.push(k)
-	return Object.keys(reg)
+	return found
 }
 
-var getScore = (function(){
-	var scores = {}
-	scores[status.YUCK] = -9999
-	scores[status.YUMMY] = 1
-	scores[status.PASS] = 0
-	return function(status) {
-		return scores[status]
-	}
-}())

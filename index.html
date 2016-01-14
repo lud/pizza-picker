@@ -5,7 +5,7 @@
 <title>Demo</title>
 
 <style>
-pp-ingredients, pp-pizzas, pp-filters {
+ul.ingredients, ul.pizzas, filters {
 	display:block;
 }
 .pizza-picker {
@@ -20,42 +20,54 @@ pp-ingredients, pp-pizzas, pp-filters {
 	color:grey;
 	text-decoration: none;
 	font-weight: bold;
+	cursor: pointer;
 }
-pp-ingredients li.status-yummy a.yum {
+
+ul.ingredients li a {
+	padding:0 5px;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select:none;
+	user-select:none;
+	-o-user-select:none
+}
+
+ul.ingredients li.status-yummy a.yummy {
 	color:pink;
 }
-pp-ingredients li.status-yuck a.yuck {
+ul.ingredients li.status-yuck a.yuck {
 	color:red;
 }
-pp-ingredients li.status-yuck {
+ul.ingredients li.status-yuck span {
 	color: red;
 	text-decoration: line-through;
 }
-pp-filters .active a {
+filters .active a {
 	color:green;
 }
-pp-pizzas {
+ul.pizzas {
 	position: relative;
 }
-pp-pizzas li {
+ul.pizzas li {
 	background:#eee;
 	line-height: 2em;
 	height:2em;
 	overflow:hidden;
+	margin:3px 0;
 }
-pp-pizzas li.on, pp-pizzas li.on_to_off, pp-pizzas li.off_to_on.on {
+ul.pizzas li.on, ul.pizzas li.on_to_off, ul.pizzas li.off_to_on.on {
 	/* appear */
 	transition: height 50ms ease-in, opacity 100ms ease-in 50ms;
 	opacity:1;
 	height:2em;
 }
-pp-pizzas li.off, pp-pizzas li.off_to_on, pp-pizzas li.on_to_off.off {
+ul.pizzas li.off, ul.pizzas li.off_to_on, ul.pizzas li.on_to_off.off {
 	/* disappear */
 	transition: height 50ms ease-in 100ms, opacity 100ms ease-in;
 	opacity:0;
 	height:0px;
 }
-pp-pizzas li > * {
+ul.pizzas li > * {
 	vertical-align: middle;
 }
 body {
@@ -65,47 +77,6 @@ pizzapicker div {
 	border:1px solid #aaa;
 }
 
-/** grid  from http://www.responsivegridsystem.com/calculator/ **/
-
-/*  SECTIONS  */
-.grid {
-	clear: both;
-	padding: 0px;
-	margin: 0px;
-}
-
-/*  COLUMN SETUP  */
-.col {
-	display: block;
-	float:left;
-	margin: 1% 0 1% 1.6%;
-}
-.col:first-child { margin-left: 0; }
-
-/*  GROUPING  */
-.group:before,
-.group:after { content:""; display:table; }
-.group:after { clear:both;}
-.group { zoom:1; /* For IE 6/7 */ }
-/*  GRID OF FOUR  */
-.span-4-4 {
-	width: 100%;
-}
-.span-3-4 {
-	width: 74.6%;
-}
-.span-2-4 {
-	width: 49.2%;
-}
-.span-1-4 {
-	width: 23.8%;
-}
-
-/*  GO FULL WIDTH BELOW 480 PIXELS */
-@media only screen and (max-width: 480px) {
-	.col {  margin: 1% 0 1% 0%; }
-	.span-1-4, .span-2-4, .span-3-4, .span-4-4 { width: 100%; }
-}
 
 </style>
 
@@ -117,18 +88,7 @@ pizzapicker div {
 
 <h3>Test</h3>
 
-<div class="grid group">
-	<div class="col span-1-4">
-		<h5>Ingredients</h5>
-		<pp-ingredients class="myPicker"></pp-ingredients>
-		<h5>Filters</h5>
-		<pp-filters class="myPicker"></pp-filters>
-	</div>
-	<div class="col span-3-4 ">
-		<h5>Your selection</h5>
-		<pp-pizzas class="myPicker"></pp-pizzas>
-	</div>
-</div>
+<div id="picker-here">H E R E !</div>
 
 <script type="text/javascript" src="dist/pizza-picker.js"></script>
 <script type="text/javascript" src="dist/pizza-picker-lc_fr.js"></script>
@@ -145,13 +105,16 @@ pizzapicker div {
 			chevre: 'Horny Cheese',
 			ham: 'Ham',
 			shrooms: 'White Mushrooms',
+			cream: 'Cream',
 		},
+		// Specify the avalable sizes
+		sizes: [26, 32],
 		// Then add the pizzas. They must have a name and some ingredients. Just
 		// use the keys you've defined in the setIngredients call previously
 		pizzas: [
-			{name:'Kana', tags:['vgr'],ingredients:['tomato', 'cheese'], price:5},
-			{name:'Chiz', ingredients:['tomato', 'cheese', 'chevre'], price:5},
-			{name:'Tron$on',  tags:['notHallal'], ingredients:['tomato', 'cheese', 'ham', 'shrooms'], price:{26:4,32:6}, url:"http://example.com/"}
+			{name:'Kana', tags:['vgr'],ingredients:['tomato', 'cheese'], prices:{26:4,32:6}},
+			{name:'Chiz', ingredients:['tomato', 'cheese', 'chevre'], prices:{26:4,32:6}},
+			{name:'Tron$on',  tags:['notHallal'], ingredients:['cream', 'cheese', 'ham', 'shrooms'], prices:{26:4,32:6}, url:"http://example.com/"}
 		],
 		// When a pizza is clicked, we can catch the event to add further
 		// treatment like e.g. addToCart()
@@ -163,20 +126,12 @@ pizzapicker div {
 		},
 		// We can add filters to the app
 		filters: {
-			veggie: {fun: PizzaPicker.filter.taggedOnly('vgr'), label: 'Végé'},
-			hallal: PizzaPicker.filter.hideTagged('notHallal')
+			// veggie: {fun: PizzaPicker.filter.taggedOnly('vgr'), label: 'Végé'},
+			// hallal: PizzaPicker.filter.hideTagged('notHallal')
 		},
 		// Finally, render the picker in a div #p1
-		container: '.myPicker'
+		container: document.getElementById('picker-here')
 	})
 	console.log('picker',picker)
-	function loopFilter(time, filter){
-		setTimeout(function(){
-			picker.toggleFilter(filter)
-			loopFilter(time, filter)
-		}, time)
-	}
-	// loopFilter(1500, 'veggie')
-	// loopFilter(1400, 'hallal')
 </script>
 
