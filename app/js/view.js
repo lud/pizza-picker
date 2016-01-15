@@ -1,22 +1,24 @@
-let m = require('mithril')
+import {status} from 'constants'
 let get = require('helpers/get')
+let interleave = require('helpers/interleave')
+let m = require('mithril')
 let morpheus = require('morpheus')
 
 
 function make(api, store, opts) {
 	let el = opts.container
 	let view = {}
-	store.listen(_ => m.render(el, view.content()))
+	store.change.add(_ => m.render(el, view.content()))
 	view.content = function() {
 		return m('div', [
 			m('ul.ingredients', store.ingredients().map((ing,i) =>
 				m('li', {'class': 'status-' + ing.status()}, [
 					m('span', ing.name),
-					m('a', {'class': 'yummy', onclick: e => api.toggleYummy(ing)}, m.trust('^')),
-					m('a', {'class': 'yuck', onclick: e => api.toggleYuck(ing)}, 'x')
+					m('a', {'class': 'yummy', onclick: e => api.toggleYummy.dispatch(ing)}, m.trust('^')),
+					m('a', {'class': 'yuck', onclick: e => api.toggleYuck.dispatch(ing)}, 'x')
 				])
 			)),
-			m('ul.pizzas', store.pizzas().map((p,i) =>
+			m('ul.pizzas', store.pizzas().reverse().map((p,i) =>
 				m('li', {key:p.name, config: fadeInOut(p, opts)}, [
 					m('span', [p.name]),
 					m('span', ' - '),
@@ -26,7 +28,7 @@ function make(api, store, opts) {
 					m('span', ' - '),
 					m('span', ['defaultOrder: ',p.defaultOrder]),
 					m('span', ' - '),
-					m('span', [p.ingredients.map(get('name')).join(', ')])
+					m('span', {'class': 'ingredients'}, [interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ' – ')])
 				])
 			)),
 		])
@@ -68,11 +70,12 @@ function fadeInOut(pizza, opts) {
 				}
 			})
 		}
+		// pizza has moved.
 		if (appearing || pizza.visible() && rankChanged) {
-			// pizza has moved.
-			console.log('pizza move from %s to %s', pizza.prevRank(), pizza.rank())
+			if (appearing) {
+				el.style.top = 0 // allow the first move on load
+			}
 			let top = String(pizza.rank() * (pHeight + pMargin)) + 'px'
-			console.log(' - top = %s', top)
 			morpheus([el], {
 				top: top,
 				duration: 300,
@@ -81,5 +84,13 @@ function fadeInOut(pizza, opts) {
 				}
 			})
 		}
+	}
+}
+
+function formatIngredient(ing, opts) {
+	if (ing.status() === status.YUMMY) {
+		return m('span', {'class': 'yummy'}, ing.name)
+	} else {
+		return m('span', ing.name)
 	}
 }

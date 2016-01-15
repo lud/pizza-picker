@@ -1,9 +1,7 @@
-import {status} from 'constants'
 let extend = require('extend')
-
+let Signal = require('min-signal')
 let storeFactory = require('store')
 let viewFactory = require('view')
-let Reflux = require('reflux')
 
 
 // app
@@ -13,16 +11,16 @@ window.m = require('mithril')
 
 PizzaPicker.create = function(_opts) {
 	let opts = setDefaultOpts(_opts)
-	let api = Reflux.createActions([
-		'toggleYummy', 'toggleYuck'
-	])
+	let api = {
+		'toggleYummy': new Signal(),
+		'toggleYuck': new Signal()
+	}
 	let store = storeFactory.make(api, opts)
-	let view = viewFactory.make(api, store, opts)
+	viewFactory.make(api, store, opts)
 	opts.container.classList.add('pizza-picker') // @todo move this somewhere else ?
-	store.trigger()
+	store.init()
+	return api
 }
-
-console.log('pp',PizzaPicker)
 
 
 

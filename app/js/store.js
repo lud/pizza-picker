@@ -1,51 +1,55 @@
 import {status} from 'constants'
-let Reflux = require('reflux')
-let sortby = require('helpers/sortby')
-let m = require('mithril')
-let omap = require('helpers/omap')
 let assert = require('helpers/assert')
-let ovals = require('helpers/ovals')
 let extend = require('extend')
 let get = require('helpers/get')
+let m = require('mithril')
+let omap = require('helpers/omap')
+let ovals = require('helpers/ovals')
+let Signal = require('min-signal')
+let sortby = require('helpers/sortby')
 
 
 let model = {}
 
 model.make = function(api, opts) {
-	let ingredients = omap(opts.ingredients, ingredient)
+	let ingredients = omap(opts.ingredients, Ingredient)
 	let defaultOrder = 0
 	let pizzas = opts.pizzas.map(function(def){
-		let ingrs = findAllIngredients(ingredients, def.ingredients)
 		let def2 = extend({}, def)
 		def2.ingredients = findAllIngredients(ingredients, def.ingredients)
 		def2.defaultOrder = defaultOrder++
-		return pizza(def2)
+		return Pizza(def2)
 	})
+
 	let filters = []
 	let ingredientsList = ovals(ingredients).sort()
-	return Reflux.createStore({
-		init: function() {
-			this.listenToMany(api)
-			this.computePizzas()
-			this.trigger()
+	let store = {
+		change: new Signal(),
+		trigger: function() {
+			store.change.dispatch()
+		},
+		init: function () {
+			omap(api, (f, k) => f.add(store[k]))
+			store.computePizzas()
+			store.trigger()
 		},
 		ingredients: () => ingredientsList,
-		pizzas: function() {
+		pizzas: function () {
 			return pizzas
 				// .filter(p => p.visible())
 
 		},
-		onToggleYummy: function(ing) {
+		toggleYummy: function (ing) {
 			ing.toggleYummy()
-			this.computePizzas()
-			this.trigger()
+			store.computePizzas()
+			store.trigger()
 		},
-		onToggleYuck: function(ing) {
+		toggleYuck: function (ing) {
 			ing.toggleYuck()
-			this.computePizzas()
-			this.trigger()
+			store.computePizzas()
+			store.trigger()
 		},
-		computePizzas: function() {
+		computePizzas: function () {
 			let visibleRank = 0
 			pizzas.forEach(function(p){
 				p.compute()
@@ -55,18 +59,20 @@ model.make = function(api, opts) {
 				p.rank(p.visible() ? visibleRank++ : 0)
 			})
 		}
-	})
+	}
+	// store.init()
+	return store
 }
 
 module.exports = model
 
 // pizza model, receives all pizza properties from the user spec, but
 // .ingredients are models
-let pizza = function(pizza) {
+let Pizza = function(pizza) {
 	pizza.wasVisible = m.prop(false)
 	pizza.visible = m.prop(true)
 	let prevRank = 0
-	let curRank = pizza.defaultOrder
+	let curRank = 0
 	pizza.prevRank = () => prevRank
 	pizza.rank = function() {
 		if (arguments.length) {
@@ -98,7 +104,7 @@ let pizza = function(pizza) {
 	return pizza
 }
 
-let ingredient = function(name) {
+let Ingredient = function(name) {
 	let ing = {
 		name: name
 	}
