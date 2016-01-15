@@ -14,8 +14,8 @@ let model = {}
 model.make = function(api, opts) {
 	let ingredients = omap(opts.ingredients, Ingredient)
 	let defaultOrder = 0
-	let pizzas = opts.pizzas.map(function(def){
-		let def2 = extend({}, def)
+	let pizzas = opts.pizzas.map(function(def, i){
+		let def2 = extend({id: i}, def)
 		def2.ingredients = findAllIngredients(ingredients, def.ingredients)
 		def2.defaultOrder = defaultOrder++
 		return Pizza(def2)
@@ -47,10 +47,6 @@ model.make = function(api, opts) {
 		},
 		toggleYuck: function (ing) {
 			ing.toggleYuck()
-			store.computePizzas()
-		},
-		toggleFilter: function (filter) {
-			filter.toggle()
 			store.computePizzas()
 		},
 		toggleFilter: function (filter) {
@@ -143,9 +139,7 @@ let Filter = function(data) {
 		return filter.status(filter.status() === status.DISABLED ? status.ENABLED : status.DISABLED)
 	}
 	filter.accept = function(pizza) {
-		console.log('filter.fun', filter.fun)
 		let passes = filter.fun(pizza)
-		console.log(' -> passes', passes)
 		return passes
 		return filter.fun(pizza)
 	}

@@ -28,7 +28,7 @@ function make(api, store, opts) {
 				])
 			)),
 			m('ul.pizzas', store.pizzas().reverse().map((p, i) =>
-				m('li', {key:p.name, config: fadeInOut(p, opts)}, [
+				m('li', {key: p.id, config: fadeInOut(p, opts)}, [
 					m('span', [p.name]),
 					m('span', ' - '),
 					m('span', ['score: ',p.score()]),
@@ -48,6 +48,9 @@ function make(api, store, opts) {
 module.exports = {make}
 
 function fadeInOut(pizza, opts) {
+
+	let animDuration = 300
+
 	return function(el, isInitialized, context, vEl) {
 		let pHeight = opts.style.pizzaRowHeightPx
 		let pMargin = opts.style.pizzaRowMarginPx
@@ -59,22 +62,22 @@ function fadeInOut(pizza, opts) {
 			el.style.opacity = 0
 			morpheus([el], {
 				height: pHeight,
-				duration: 150,
+				duration: animDuration / 2,
 				complete: function() {
 					morpheus([el], {
 						opacity: 1,
-						duration: 150
+						duration: animDuration / 2
 					})
 				}
 			})
 		} else if (disappearing) {
 			morpheus([el], {
 				opacity: 0,
-				duration: 150,
+				duration: animDuration / 2,
 				complete: function() {
 					morpheus([el], {
 						height: 0,
-						duration: 150
+						duration: animDuration / 2
 					})
 				}
 			})
@@ -87,7 +90,7 @@ function fadeInOut(pizza, opts) {
 			let top = String(pizza.rank() * (pHeight + pMargin)) + 'px'
 			morpheus([el], {
 				top: top,
-				duration: 300,
+				duration: animDuration,
 				complete: function() {
 					el.style.top = top
 				}
