@@ -13,10 +13,12 @@ let model = {}
 
 model.make = function(api, opts) {
 	let ingredients = omap(opts.ingredients, ingredient)
+	let defaultOrder = 0
 	let pizzas = opts.pizzas.map(function(def){
 		let ingrs = findAllIngredients(ingredients, def.ingredients)
 		let def2 = extend({}, def)
 		def2.ingredients = findAllIngredients(ingredients, def.ingredients)
+		def2.defaultOrder = defaultOrder++
 		return pizza(def2)
 	})
 	let filters = []
@@ -24,12 +26,14 @@ model.make = function(api, opts) {
 	return Reflux.createStore({
 		init: function() {
 			this.listenToMany(api)
+			this.computePizzas()
+			this.trigger()
 		},
 		ingredients: () => ingredientsList,
 		pizzas: function() {
 			return pizzas
 				// .filter(p => p.visible())
-				.sort(sortby().desc(p => p.score()).asc('name'))
+
 		},
 		onToggleYummy: function(ing) {
 			ing.toggleYummy()
@@ -42,7 +46,14 @@ model.make = function(api, opts) {
 			this.trigger()
 		},
 		computePizzas: function() {
-			pizzas.forEach(p => p.compute())
+			let visibleRank = 0
+			pizzas.forEach(function(p){
+				p.compute()
+			})
+			pizzas.sort(sortby().desc(p => p.score()).asc('defaultOrder'))
+			pizzas.forEach(function(p){
+				p.rank(p.visible() ? visibleRank++ : 0)
+			})
 		}
 	})
 }
@@ -54,10 +65,22 @@ module.exports = model
 let pizza = function(pizza) {
 	pizza.wasVisible = m.prop(false)
 	pizza.visible = m.prop(true)
+	let prevRank = 0
+	let curRank = pizza.defaultOrder
+	pizza.prevRank = () => prevRank
+	pizza.rank = function() {
+		if (arguments.length) {
+			let newRank = arguments[0]
+			prevRank = curRank
+			curRank = newRank
+			return curRank
+		} else {
+			return curRank
+		}
+	}
 	pizza.checkVisible = function() {
 		pizza.wasVisible(pizza.visible())
 		// a pizza is visible if neither of its ingredients have a YUCK status
-		console.log('pizzas.ingredients', pizza.ingredients.map(it => it.status()))
 		return pizza.visible(! pizza.ingredients.some(i => i.status() === status.YUCK))
 	}
 	pizza.calcScore = function() {

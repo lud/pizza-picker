@@ -17,8 +17,14 @@ function make(api, store, opts) {
 				])
 			)),
 			m('ul.pizzas', store.pizzas().map((p,i) =>
-				m('li', {key:p.name, config: fadeInOut(p)}, [
+				m('li', {key:p.name, config: fadeInOut(p, opts)}, [
 					m('span', [p.name]),
+					m('span', ' - '),
+					m('span', ['score: ',p.score()]),
+					m('span', ' - '),
+					m('span', ['rank: ',p.prevRank(), ' => ', p.rank()]),
+					m('span', ' - '),
+					m('span', ['defaultOrder: ',p.defaultOrder]),
 					m('span', ' - '),
 					m('span', [p.ingredients.map(get('name')).join(', ')])
 				])
@@ -30,41 +36,48 @@ function make(api, store, opts) {
 
 module.exports = {make}
 
-function fadeInOut(pizza) {
+function fadeInOut(pizza, opts) {
 	return function(el, isInitialized, context, vEl) {
-		console.log('fadeInOut', arguments)
-		console.log('pizza visible', pizza.visible())
-		if (!pizza.wasVisible() && pizza.visible()) {
-			// m.redraw.strategy('none')
+		let pHeight = opts.style.pizzaRowHeightPx
+		let pMargin = opts.style.pizzaRowMarginPx
+		let appearing = !isInitialized || !pizza.wasVisible() && pizza.visible()
+		let disappearing = pizza.wasVisible() && !pizza.visible()
+		let rankChanged = pizza.rank() !== pizza.prevRank()
+		if (appearing) {
 			el.style.height = 0
 			el.style.opacity = 0
-			// m.startComputation()
 			morpheus([el], {
-				height: 30,
+				height: pHeight,
 				duration: 150,
 				complete: function() {
 					morpheus([el], {
 						opacity: 1,
-						duration: 300,
-						complete: function() {
-							console.log('complete', arguments)
-						}
+						duration: 150
 					})
 				}
 			})
-		}
-		else if (pizza.wasVisible() && !pizza.visible()) {
+		} else if (disappearing) {
 			morpheus([el], {
 				opacity: 0,
 				duration: 150,
 				complete: function() {
 					morpheus([el], {
 						height: 0,
-						duration: 150,
-						complete: function() {
-							console.log('complete', arguments)
-						}
+						duration: 150
 					})
+				}
+			})
+		}
+		if (appearing || pizza.visible() && rankChanged) {
+			// pizza has moved.
+			console.log('pizza move from %s to %s', pizza.prevRank(), pizza.rank())
+			let top = String(pizza.rank() * (pHeight + pMargin)) + 'px'
+			console.log(' - top = %s', top)
+			morpheus([el], {
+				top: top,
+				duration: 300,
+				complete: function() {
+					el.style.top = top
 				}
 			})
 		}

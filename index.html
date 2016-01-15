@@ -51,9 +51,9 @@ ul.pizzas {
 ul.pizzas li {
 	background:#eee;
 	line-height: 2em;
-	height:2em;
 	overflow:hidden;
-	margin:3px 0;
+	position: absolute;
+	height: 50px;
 }
 ul.pizzas li.on, ul.pizzas li.on_to_off, ul.pizzas li.off_to_on.on {
 	/* appear */
@@ -72,9 +72,6 @@ ul.pizzas li > * {
 }
 body {
 	font-family: monospace;
-}
-pizzapicker div {
-	border:1px solid #aaa;
 }
 
 
@@ -112,9 +109,11 @@ pizzapicker div {
 		// Then add the pizzas. They must have a name and some ingredients. Just
 		// use the keys you've defined in the setIngredients call previously
 		pizzas: [
-			{name:'Kana', tags:['vgr'],ingredients:['tomato', 'cheese'], prices:{26:4,32:6}},
 			{name:'Chiz', ingredients:['tomato', 'cheese', 'chevre'], prices:{26:4,32:6}},
-			{name:'Tron$on',  tags:['notHallal'], ingredients:['cream', 'cheese', 'ham', 'shrooms'], prices:{26:4,32:6}, url:"http://example.com/"}
+			{name:'Haam', ingredients:['tomato', 'cheese', 'ham'], prices:{26:4,32:6}},
+			{name:'Hzaam', ingredients:['cream', 'cheese', 'ham'], prices:{26:4,32:6}},
+			{name:'Kana', tags:['vgr'],ingredients:['tomato', 'ham', 'cheese'], prices:{26:4,32:6}},
+			{name:'Tron$on',  tags:['notHallal'], ingredients:['cream', 'cheese', 'shrooms'], prices:{26:4,32:6}, url:"http://example.com/"},
 		],
 		// When a pizza is clicked, we can catch the event to add further
 		// treatment like e.g. addToCart()
