@@ -20,8 +20,10 @@ model.make = function(api, opts) {
 		def2.defaultOrder = defaultOrder++
 		return Pizza(def2)
 	})
-
-	let filters = []
+	let filters = ovals(opts.filters, function(filter, k) {
+		filter.id = k
+		return Filter(filter)
+	}).sort(sortby('name'))
 	let ingredientsList = ovals(ingredients).sort()
 	let store = {
 		change: new Signal(),
@@ -29,35 +31,43 @@ model.make = function(api, opts) {
 			store.change.dispatch()
 		},
 		init: function () {
-			omap(api, (f, k) => f.add(store[k]))
+			omap(api, function(f, k) {
+				if(store[k]) {
+					f.add(store[k])
+				}
+			})
 			store.computePizzas()
-			store.trigger()
 		},
 		ingredients: () => ingredientsList,
-		pizzas: function () {
-			return pizzas
-				// .filter(p => p.visible())
-
-		},
+		pizzas: () => pizzas,
+		filters: () => filters,
 		toggleYummy: function (ing) {
 			ing.toggleYummy()
 			store.computePizzas()
-			store.trigger()
 		},
 		toggleYuck: function (ing) {
 			ing.toggleYuck()
 			store.computePizzas()
-			store.trigger()
+		},
+		toggleFilter: function (filter) {
+			filter.toggle()
+			store.computePizzas()
+		},
+		toggleFilter: function (filter) {
+			filter.toggle()
+			store.computePizzas()
 		},
 		computePizzas: function () {
 			let visibleRank = 0
+			let enabledFilters = filters.filter(f => f.status() === status.ENABLED)
 			pizzas.forEach(function(p){
-				p.compute()
+				p.compute(enabledFilters)
 			})
 			pizzas.sort(sortby().desc(p => p.score()).asc('defaultOrder'))
 			pizzas.forEach(function(p){
 				p.rank(p.visible() ? visibleRank++ : 0)
 			})
+			store.trigger()
 		}
 	}
 	// store.init()
@@ -68,7 +78,8 @@ module.exports = model
 
 // pizza model, receives all pizza properties from the user spec, but
 // .ingredients are models
-let Pizza = function(pizza) {
+let Pizza = function(data) {
+	let pizza = extend({tags:[], url:null, prices:{}, name:'Unnamed pizza'}, data)
 	pizza.wasVisible = m.prop(false)
 	pizza.visible = m.prop(true)
 	let prevRank = 0
@@ -84,10 +95,14 @@ let Pizza = function(pizza) {
 			return curRank
 		}
 	}
-	pizza.checkVisible = function() {
+	pizza.checkVisible = function(filters) {
 		pizza.wasVisible(pizza.visible())
 		// a pizza is visible if neither of its ingredients have a YUCK status
-		return pizza.visible(! pizza.ingredients.some(i => i.status() === status.YUCK))
+		return pizza.visible(
+			! filters.some(filter => filter.reject(pizza))
+			&&
+			! pizza.ingredients.some(i => i.status() === status.YUCK)
+			)
 	}
 	pizza.calcScore = function() {
 		// Yummy ingredients score 1, others score 0
@@ -97,9 +112,12 @@ let Pizza = function(pizza) {
 	}
 	pizza.score = m.prop()
 	pizza.calcScore()
-	pizza.compute = function() {
-		pizza.checkVisible()
+	pizza.compute = function(filters) {
+		pizza.checkVisible(filters)
 		pizza.calcScore()
+	}
+	pizza.tagged = function(tag) {
+		return pizza.tags.indexOf(tag) !== -1
 	}
 	return pizza
 }
@@ -118,10 +136,28 @@ let Ingredient = function(name) {
 	return ing
 }
 
+let Filter = function(data) {
+	let filter = extend({}, data)
+	filter.status = m.prop(status.DISABLED)
+	filter.toggle = function() {
+		return filter.status(filter.status() === status.DISABLED ? status.ENABLED : status.DISABLED)
+	}
+	filter.accept = function(pizza) {
+		console.log('filter.fun', filter.fun)
+		let passes = filter.fun(pizza)
+		console.log(' -> passes', passes)
+		return passes
+		return filter.fun(pizza)
+	}
+	filter.reject = function(pizza) {
+		return ! filter.accept(pizza)
+	}
+	return filter
+}
 
 function findAllIngredients (ingrs, keys) {
 	let found = []
-	keys.forEach(function(k){
+	keys.forEach(function(k) {
 		assert (ingrs[k] !== void 0, "Ingredient '%s' not found", k)
 		found.push(ingrs[k])
 	})

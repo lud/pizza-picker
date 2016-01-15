@@ -13,7 +13,8 @@ PizzaPicker.create = function(_opts) {
 	let opts = setDefaultOpts(_opts)
 	let api = {
 		'toggleYummy': new Signal(),
-		'toggleYuck': new Signal()
+		'toggleYuck': new Signal(),
+		'toggleFilter': new Signal()
 	}
 	let store = storeFactory.make(api, opts)
 	viewFactory.make(api, store, opts)
@@ -22,13 +23,22 @@ PizzaPicker.create = function(_opts) {
 	return api
 }
 
+PizzaPicker.filter = {
+	taggedOnly: function(tag) {
+		// keeps only the pizza if it has the tag
+		return pizzaHasTagFun(tag, true)
+	},
+	hideTagged: function(tag) {
+		// keeps only the pizza if it has NOT the tag
+		return pizzaHasTagFun(tag, false)
+	}
+}
 
-
-
-
-// -----------------------------------------------------------------------------
-
-
+function pizzaHasTagFun(tag, ret) {
+	return function(pizza) {
+		return pizza.tagged(tag) ? ret : !ret
+	}
+}
 
 function setDefaultOpts (opts) {
 	return extend({

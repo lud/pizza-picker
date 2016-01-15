@@ -116,7 +116,8 @@ body {
 			{name:'Chiz', ingredients:['tomato', 'cheese', 'chevre'], prices:{26:4,32:6}},
 			{name:'Haam', ingredients:['tomato', 'cheese', 'ham'], prices:{26:4,32:6}},
 			{name:'Hzaam', ingredients:['cream', 'cheese', 'ham'], prices:{26:4,32:6}},
-			{name:'Kana', tags:['vgr'],ingredients:['tomato', 'ham', 'cheese'], prices:{26:4,32:6}},
+			{name:'Kana', tags:['v'],ingredients:['tomato', 'cheese'], prices:{26:4,32:6}},
+			{name:'Kana', tags:['v+', 'v'],ingredients:['tomato', 'shrooms'], prices:{26:4,32:6}},
 			{name:'Tron$on',  tags:['notHallal'], ingredients:['cream', 'cheese', 'shrooms'], prices:{26:4,32:6}, url:"http://example.com/"},
 		],
 		// When a pizza is clicked, we can catch the event to add further
@@ -129,8 +130,9 @@ body {
 		},
 		// We can add filters to the app
 		filters: {
-			// veggie: {fun: PizzaPicker.filter.taggedOnly('vgr'), label: 'Végé'},
-			// hallal: PizzaPicker.filter.hideTagged('notHallal')
+			veggie: {fun: PizzaPicker.filter.taggedOnly('v'), name: 'Veggie'},
+			vegan: {fun: PizzaPicker.filter.taggedOnly('v+'), name: 'Vegan'},
+			hallal: {fun: PizzaPicker.filter.hideTagged('notHallal'), name: 'Hallal'}
 		},
 		// Finally, render the picker in a div #p1
 		container: document.getElementById('picker-here')

@@ -11,14 +11,23 @@ function make(api, store, opts) {
 	store.change.add(_ => m.render(el, view.content()))
 	view.content = function() {
 		return m('div', [
-			m('ul.ingredients', store.ingredients().map((ing,i) =>
+			m('ul.ingredients', store.ingredients().map((ing, i) =>
 				m('li', {'class': 'status-' + ing.status()}, [
 					m('span', ing.name),
 					m('a', {'class': 'yummy', onclick: e => api.toggleYummy.dispatch(ing)}, m.trust('^')),
 					m('a', {'class': 'yuck', onclick: e => api.toggleYuck.dispatch(ing)}, 'x')
 				])
 			)),
-			m('ul.pizzas', store.pizzas().reverse().map((p,i) =>
+			m('ul.filters', store.filters().map((filter, i) =>
+				m('li', {}, [
+					m('a', {onclick: e => api.toggleFilter.dispatch(filter)}, [
+						m('span', m.trust(filter.status() === status.ENABLED ? '&#9745;' : '&#9744;')),
+						' ',
+						filter.name
+					]),
+				])
+			)),
+			m('ul.pizzas', store.pizzas().reverse().map((p, i) =>
 				m('li', {key:p.name, config: fadeInOut(p, opts)}, [
 					m('span', [p.name]),
 					m('span', ' - '),
