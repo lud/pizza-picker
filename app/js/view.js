@@ -4,23 +4,24 @@ let interleave = require('helpers/interleave')
 let m = require('mithril')
 let morpheus = require('morpheus')
 
+// diameter html symbol : &#8960;
 
 function make(api, store, opts) {
 	let el = opts.container
 	let view = {}
-	store.change.add(_ => m.render(el, view.content()))
+	store.change.listen(_ => m.render(el, view.content()))
 	view.content = function() {
 		return m('div', [
 			m('ul.ingredients', store.ingredients().map((ing, i) =>
 				m('li', {'class': 'status-' + ing.status()}, [
 					m('span', ing.name),
-					m('a', {'class': 'yummy', onclick: e => api.toggleYummy.dispatch(ing)}, m.trust('^')),
-					m('a', {'class': 'yuck', onclick: e => api.toggleYuck.dispatch(ing)}, 'x')
+					m('a', {'class': 'yummy', onclick: e => api.toggleYummy([ing])}, m.trust('&#10084;')),
+					m('a', {'class': 'yuck', onclick: e => api.toggleYuck([ing])}, m.trust('&#10005;'))
 				])
 			)),
 			m('ul.filters', store.filters().map((filter, i) =>
 				m('li', {}, [
-					m('a', {onclick: e => api.toggleFilter.dispatch(filter)}, [
+					m('a', {onclick: e => api.toggleFilter([filter])}, [
 						m('span', m.trust(filter.status() === status.ENABLED ? '&#9745;' : '&#9744;')),
 						' ',
 						filter.name
@@ -30,14 +31,14 @@ function make(api, store, opts) {
 			m('ul.pizzas', store.pizzas().reverse().map((p, i) =>
 				m('li', {key: p.id, config: fadeInOut(p, opts)}, [
 					m('span', [p.name]),
-					m('span', ' - '),
-					m('span', ['score: ',p.score()]),
-					m('span', ' - '),
-					m('span', ['rank: ',p.prevRank(), ' => ', p.rank()]),
-					m('span', ' - '),
-					m('span', ['defaultOrder: ',p.defaultOrder]),
-					m('span', ' - '),
-					m('span', {'class': 'ingredients'}, [interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ' – ')])
+					// m('span', ' - '),
+					// m('span', ['score: ',p.score()]),
+					// m('span', ' - '),
+					// m('span', ['rank: ',p.prevRank(), ' => ', p.rank()]),
+					// m('span', ' - '),
+					// m('span', ['defaultOrder: ',p.defaultOrder]),
+					// m('span', ' - '),
+					m('span', {'class': 'ingredients'}, [interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')])
 				])
 			)),
 		])

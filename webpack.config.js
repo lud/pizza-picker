@@ -2,7 +2,6 @@ var webpack = require("webpack")
 var dotenv = require('dotenv')
 
 console.log("@todo closure compile & test")
-console.log("@envify transform webpack")
 
 
 dotenv.load()
@@ -30,8 +29,7 @@ module.exports = {
 			{ test: /\.tag$/, exclude: /node_modules/, loader: 'riotjs-loader', query: { type: 'none' } }
 		],
 		loaders: [
-			{ test: /\.js|\.tag$/, exclude: /node_modules/, loader: 'babel-loader'},
-			{ test: /\.js$/, loader: "envify-loader" }
+			{ test: /\.js|\.tag$/, exclude: /node_modules/, loader: 'babel-loader'}
 		]
 	},
 	amd: {phoenix: false},
@@ -41,7 +39,7 @@ module.exports = {
 	externals: {
 		gcconf: "var window.GConf",
 	},
-	devtool: process.env.APP_DEBUG ? '#eval-source-map' : this.undefined,
+	devtool: Number(process.env.APP_DEBUG) ? '#eval-source-map' : this.undefined,
 	plugins: [
 		new webpack.ProvidePlugin({riot: 'riot'}),
 		new webpack.optimize.OccurenceOrderPlugin(true),

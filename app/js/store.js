@@ -5,7 +5,7 @@ let get = require('helpers/get')
 let m = require('mithril')
 let omap = require('helpers/omap')
 let ovals = require('helpers/ovals')
-let Signal = require('min-signal')
+let fsignal = require('fsignal')
 let sortby = require('helpers/sortby')
 
 
@@ -26,14 +26,14 @@ model.make = function(api, opts) {
 	}).sort(sortby('name'))
 	let ingredientsList = ovals(ingredients).sort()
 	let store = {
-		change: new Signal(),
+		change: fsignal(),
 		trigger: function() {
-			store.change.dispatch()
+			store.change()
 		},
 		init: function () {
 			omap(api, function(f, k) {
 				if(store[k]) {
-					f.add(store[k])
+					f.listen(store[k])
 				}
 			})
 			store.computePizzas()
@@ -46,6 +46,8 @@ model.make = function(api, opts) {
 			store.computePizzas()
 		},
 		toggleYuck: function (ing) {
+			console.log('into toggleYuck', arguments)
+			console.log('into toggleYuck ing', ing)
 			ing.toggleYuck()
 			store.computePizzas()
 		},

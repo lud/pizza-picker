@@ -1,8 +1,8 @@
 let extend = require('extend')
-let Signal = require('min-signal')
+let fsignal = require('fsignal')
 let storeFactory = require('store')
 let viewFactory = require('view')
-
+let respdata = require('responsive-data')
 
 // app
 let PizzaPicker = {i18n:{}}
@@ -12,9 +12,9 @@ window.m = require('mithril')
 PizzaPicker.create = function(_opts) {
 	let opts = setDefaultOpts(_opts)
 	let api = {
-		'toggleYummy': new Signal(),
-		'toggleYuck': new Signal(),
-		'toggleFilter': new Signal()
+		'toggleYummy': fsignal(),
+		'toggleYuck': fsignal(),
+		'toggleFilter': fsignal()
 	}
 	let store = storeFactory.make(api, opts)
 	viewFactory.make(api, store, opts)
@@ -53,10 +53,47 @@ function setDefaultOpts (opts) {
 		renderPizzas: true,
 		renderFilters: true,
 		style: {
-			pizzaRowHeightPx: 50,
+			pizzaRowHeightPx: 100,
 			pizzaRowMarginPx: 5,
 		}
 	}, opts)
 }
 
+// Publish some useful stuff
+PizzaPicker.m = require('mithril')
+PizzaPicker.fsignal = require('fsignal')
+
+var configs = [
+	{
+		minWidth: 768,
+		data: {
+			// anything you want here
+			type: 'tablet'
+		}
+	},
+	{
+		orientation: 'landscape',
+		maxWidth: 768 - 1,
+		data: {
+			type: 'landscape smartphone'
+		}
+	},
+	{
+		maxWidth: 768 - 1,
+		data: {
+			type: 'smartphone'
+		}
+	},
+	// this one has no constraints, so it matches everytime
+	{
+		data: {
+			type: 'any'
+		}
+	}
+]
+var conf = respdata(configs, function(version){
+	console.log('version', version.type)
+})
+window.ccc = conf
+console.log(conf.get())
 

@@ -14,13 +14,11 @@
     "babel-core": "^4.7.16",
     "babel-loader": "^4.2.0",
     "dotenv": "^0.5.1",
-    "envify": "^1.2.1",
-    "envify-loader": "^0.1.0",
     "webpack": "^1.7.3"
   },
   "dependencies": {
     "extend": "^3.0.0",
-    "min-signal": "0.0.5",
+    "lodash": "^4.0.0",
     "mithril": "^0.2.2-rc.1",
     "morpheus": "^0.7.2"
   }
