@@ -51,12 +51,15 @@ let fsignal = require('fsignal')
 
 // add the listener for the event resizes. One single listener for many possible
 // configuration
-let resize = fsignal()
+let onResize = fsignal()
 let listenerAdded = false
 function maybeAddGlobalListener() {
 	if (!listenerAdded) {
 		console.log('adding responsive data global listener')
-		window.addEventListener('resize', throttle(resize, 200))
+		let listener = function() {
+			onResize([getClient()])
+		}
+		window.addEventListener('resize', throttle(listener, 200, {trailing: true}))
 		listenerAdded = true
 	}
 }
@@ -65,14 +68,13 @@ module.exports = function(_configs, listener) {
 	let configs = _configs.slice().reverse()
 	maybeAddGlobalListener()
 	let current = calculateSizes(configs, getClient())
-	let calculatorListenerId = resize.listen(function(){
-		let client = getClient()
+	let calculatorListenerId = onResize.listen(function(client){
 		current = calculateSizes(configs, client)
 		if (listener) listener(current, client)
 	})
 	return {
 		get: () => current,
-		forget: () => resize.remove(calculatorListenerId)
+		forget: () => onResize.remove(calculatorListenerId)
 	}
 }
 
