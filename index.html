@@ -5,12 +5,15 @@
 <title>Demo</title>
 
 <style>
-ul.ingredients, ul.pizzas, filters {
-	display:block;
+.pizza-picker, .pizza-picker * {
+	margin:0;
+	padding:0;
+	box-sizing: border-box;
 }
 .pizza-picker {
 	display:block;
 	margin:1em;
+	font-size:16px;
 }
 .pizza-picker ul, .pizza-picker li {
 	list-style: none outside none;
@@ -48,34 +51,48 @@ filters .active a {
 ul.pizzas {
 	position: relative;
 }
-ul.pizzas li {
-	background:#eee;
+ul.pizzas > li {
+	background:#fff;
+	width:100%;
 	line-height: 2em;
 	overflow:hidden;
 	position: absolute;
 	height: 50px;
 }
-ul.pizzas li.on, ul.pizzas li.on_to_off, ul.pizzas li.off_to_on.on {
-	/* appear */
-	transition: height 50ms ease-in, opacity 100ms ease-in 50ms;
-	opacity:1;
-	height:2em;
+ul.pizzas > li > * {
+	vertical-align:top;
+	padding:0;
+	margin:0;
+	overflow: hidden;
+	margin:0 5px;
+	height: 100px;
 }
-ul.pizzas li.off, ul.pizzas li.off_to_on, ul.pizzas li.on_to_off.off {
-	/* disappear */
-	transition: height 50ms ease-in 100ms, opacity 100ms ease-in;
-	opacity:0;
-	height:0px;
+ul.pizzas > li div.img {
+	width: 100px;
+	float:left;
 }
-ul.pizzas li > * {
-	vertical-align: middle;
+ul.pizzas > li div.infos {
+	display:block;
 }
-ul.pizzas li .ingredients .yummy {
+ul.pizzas > li ul.prices {
+	float:right;
+	width: 100px;
+	padding:0 5px;
+	height: 90px;
+	margin:5px;
+	border-left:1px dashed #aaa;
+}
+ul.pizzas h3 {
+	padding:0;
+	margin:0;
+}
+ul.pizzas > li .ingredients .yummy {
 	text-decoration: underline;
 	color: pink;
 }
 body {
 	/*font-family: monospace;*/
+	background: #313131;
 }
 
 
@@ -83,7 +100,6 @@ body {
 
 <h3>TODO</h3>
 <ul>
-	<li>Use an array of ingredients to allow ordering</li>
 	<li>Ability to pin a pizza on top</li>
 </ul>
 
@@ -110,6 +126,7 @@ body {
 		},
 		// Specify the avalable sizes
 		sizes: [26, 32],
+		sizeUnit: 'cm',
 		// Then add the pizzas. They must have a name and some ingredients. Just
 		// use the keys you've defined in the setIngredients call previously
 		pizzas: [

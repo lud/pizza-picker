@@ -73,6 +73,7 @@ module.exports = function fsignal(_opts) {
 	}
 
 	let trigger = (!opts.async) ? calls : function(args) {
+		console.error("Ne pas utiliser d'array, utiliser les arguments, sinon c'est relou")
 		setTimeout(() => calls(args), 0)
 	}
 

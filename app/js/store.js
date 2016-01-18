@@ -46,8 +46,6 @@ model.make = function(api, opts) {
 			store.computeAll()
 		},
 		toggleYuck: function (ing) {
-			console.log('into toggleYuck', arguments)
-			console.log('into toggleYuck ing', ing)
 			ing.toggleYuck()
 			store.computeAll()
 		},

@@ -14,9 +14,11 @@ PizzaPicker.create = function(_opts) {
 	let api = {
 		'toggleYummy': fsignal(),
 		'toggleYuck': fsignal(),
-		'toggleFilter': fsignal()
+		'toggleFilter': fsignal(),
+		'windowResize': fsignal()
 	}
 	let store = storeFactory.make(api, opts)
+	opts.style = respdata(opts.style, (style, client) => api.windowResize([style, client]))
 	viewFactory.make(api, store, opts)
 	opts.container.classList.add('pizza-picker') // @todo move this somewhere else ?
 	store.init()
@@ -42,58 +44,32 @@ function pizzaHasTagFun(tag, ret) {
 
 function setDefaultOpts (opts) {
 	return extend({
-		ingredients:{},
-		pizzas:[],
-		filters:{},
-		locale:'en',
 		container:'pizzapicker',
 		events:{},
+		filters:{},
+		formatPrice: function(price){
+			return price.toLocaleString() + ' €'
+		},
+		ingredients:{},
+		locale:'en',
+		pizzas:[],
 		prices:[],
+		renderFilters: true,
 		renderIngredients: true,
 		renderPizzas: true,
-		renderFilters: true,
-		style: {
-			pizzaRowHeightPx: 100,
-			pizzaRowMarginPx: 5,
-		}
+		// Styles makes use of responsive-data system
+		style: [
+			// this is the default with no constraint. It is specified last
+			// because we select the fist matching constraints and this one has
+			// no constraint to match (matches all cases)
+			{
+				data: {
+					pizzaRowHeightPx: 100,
+					pizzaRowMarginPx: 5,
+				}
+			}
+		]
 	}, opts)
 }
 
-// Publish some useful stuff
-PizzaPicker.m = require('mithril')
-PizzaPicker.fsignal = require('fsignal')
-
-var configs = [
-	{
-		minWidth: 768,
-		data: {
-			// anything you want here
-			type: 'tablet'
-		}
-	},
-	{
-		orientation: 'landscape',
-		maxWidth: 768 - 1,
-		data: {
-			type: 'landscape smartphone'
-		}
-	},
-	{
-		maxWidth: 768 - 1,
-		data: {
-			type: 'smartphone'
-		}
-	},
-	// this one has no constraints, so it matches everytime
-	{
-		data: {
-			type: 'any'
-		}
-	}
-]
-var conf = respdata(configs, function(version){
-	console.log('version', version.type)
-})
-window.ccc = conf
-console.log(conf.get())
 

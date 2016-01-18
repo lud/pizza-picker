@@ -39,9 +39,10 @@
 // You can also pass a function to the module. It will be called every time the
 // window is resized (throttled to 200 ms)
 //
-//    var conf = resp(configs, function(version){
+//    var conf = resp(configs, function(version, client){
 //        // outputs the config version relative to the current size, e.g. {type: 'tablet'}
 //        console.log(version)
+//        console.log(client) // outputs 'landscape' or 'portrait'
 //    })
 //
 // You can match minWidth, maxWidth, orientation ('portrait' or 'landscape').
@@ -67,13 +68,16 @@ function maybeAddGlobalListener() {
 module.exports = function(_configs, listener) {
 	let configs = _configs.slice().reverse()
 	maybeAddGlobalListener()
-	let current = calculateSizes(configs, getClient())
-	let calculatorListenerId = onResize.listen(function(client){
+	let client = getClient()
+	let current = calculateSizes(configs, client)
+	let calculatorListenerId = onResize.listen(function(newClient){
+		client = newClient
 		current = calculateSizes(configs, client)
 		if (listener) listener(current, client)
 	})
 	return {
 		get: () => current,
+		client: () => client,
 		forget: () => onResize.remove(calculatorListenerId)
 	}
 }
@@ -83,6 +87,8 @@ function getClient() {
 	let height = document.documentElement.clientHeight
 	// square is portrait
 	let orientation = (width > height) ? 'landscape' : 'portrait'
+	let portrait = (height > width)
+	let landscape = (height > width)
 	return {width, height, orientation}
 }
 

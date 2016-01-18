@@ -5,12 +5,18 @@ let interleave = require('helpers/interleave')
 let m = require('mithril')
 let morpheus = require('morpheus')
 
-// diameter html symbol : &#8960;
-
 function make(api, store, opts) {
 	let el = opts.container
 	let view = {}
-	store.change.listen(_ => m.render(el, view.content()))
+	let render = () => m.render(el, view.content())
+
+	// listen to the resize changes anf
+	api.windowResize.listen(render)
+
+	// Listen to the store change events and render the view
+	store.change.listen(render)
+
+	// Get the content for the view
 	view.content = function() {
 		return m('div', [
 			m('ul.ingredients', store.ingredients().map((ing, i) =>
@@ -36,7 +42,7 @@ function make(api, store, opts) {
 			)),
 			m('ul.pizzas', store.pizzas().reverse().map((p, i) =>
 				m('li', {key: p.id, config: fadeInOut(p, opts)}, [
-					m('span', [p.name]),
+					m('div.img', m('img',{src:'http://fakeimg.pl/100x100/ffffff/'})), // image wrapper
 					// m('span', ' - '),
 					// m('span', ['score: ',p.score()]),
 					// m('span', ' - '),
@@ -44,7 +50,15 @@ function make(api, store, opts) {
 					// m('span', ' - '),
 					// m('span', ['defaultOrder: ',p.defaultOrder]),
 					// m('span', ' - '),
-					m('span', {'class': 'ingredients'}, [interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')])
+					m('ul.prices', {'class': 'sizes'}, opts.sizes.map(function(size){
+						if (p.prices[size]) {
+							return m('li', [m.trust('&Oslash; '), size, opts.sizeUnit, ' : ', opts.formatPrice(p.prices[size])])
+						}
+					})),
+					m('div.infos', [
+						m('h3', p.name),
+						m('p', {'class': 'ingredients'}, [interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')]),
+					])
 				])
 			)),
 		])
@@ -59,8 +73,9 @@ function fadeInOut(pizza, opts) {
 	let animDuration = 300
 
 	return function(el, isInitialized, context, vEl) {
-		let pHeight = opts.style.pizzaRowHeightPx
-		let pMargin = opts.style.pizzaRowMarginPx
+		let pHeight = opts.style.get().pizzaRowHeightPx
+		let pMargin = opts.style.get().pizzaRowMarginPx
+		console.log('opts.style.get()',opts.style.get())
 		let appearing = !isInitialized || !pizza.wasVisible() && pizza.visible()
 		let disappearing = pizza.wasVisible() && !pizza.visible()
 		let rankChanged = pizza.rank() !== pizza.prevRank()
