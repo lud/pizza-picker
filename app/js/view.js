@@ -22,13 +22,13 @@ function make(api, store, opts) {
 			m('ul.ingredients', store.ingredients().map((ing, i) =>
 				m('li', {'class': 'status-' + ing.status()}, [
 					m('span', ing.name),
-					m('a', {'class': 'yummy', onclick: e => api.toggleYummy([ing])}, m.trust('&#10084;')),
-					m('a', {'class': 'yuck', onclick: e => api.toggleYuck([ing])}, m.trust('&#10005;'))
+					m('a', {'class': 'yummy', onclick: e => api.toggleYummy(ing)}, m.trust('&#10084;')),
+					m('a', {'class': 'yuck', onclick: e => api.toggleYuck(ing)}, m.trust('&#10005;'))
 				])
 			)),
 			m('ul.filters', store.filters().map((filter, i) =>
 				m('li', {}, [
-					m('a', {onclick: e => api.toggleFilter([filter])}, [
+					m('a', {onclick: e => api.toggleFilter(filter)}, [
 						m('span', m.trust(filter.status() === status.ENABLED ? '&#9745;' : '&#9744;')),
 						' ',
 						filter.name

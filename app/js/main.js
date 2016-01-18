@@ -18,7 +18,7 @@ PizzaPicker.create = function(_opts) {
 		'windowResize': fsignal()
 	}
 	let store = storeFactory.make(api, opts)
-	opts.style = respdata(opts.style, (style, client) => api.windowResize([style, client]))
+	opts.style = respdata(opts.style, api.windowResize)
 	viewFactory.make(api, store, opts)
 	opts.container.classList.add('pizza-picker') // @todo move this somewhere else ?
 	store.init()

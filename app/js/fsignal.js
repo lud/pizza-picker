@@ -63,18 +63,19 @@ module.exports = function fsignal(_opts) {
 		return void 0
 	}
 
-	let calls = function(args) {
+	let calls = function() {
 		let i = llen,
 		    listener
 		while(i--) {
 			listener = listeners[i]
-			listener.f.apply(listener.c, args)
+			listener.f.apply(listener.c, arguments)
 		}
 	}
 
 	let trigger = (!opts.async) ? calls : function(args) {
-		console.error("Ne pas utiliser d'array, utiliser les arguments, sinon c'est relou")
-		setTimeout(() => calls(args), 0)
+		console.trace('here')
+		let args = Array.prototype.slice.call(arguments)
+		setTimeout(() => calls.apply(null, args), 0)
 	}
 
 	trigger.listen = listen
