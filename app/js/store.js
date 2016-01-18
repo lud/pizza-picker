@@ -36,35 +36,32 @@ model.make = function(api, opts) {
 					f.listen(store[k])
 				}
 			})
-			store.computePizzas()
+			store.computeAll()
 		},
 		ingredients: () => ingredientsList,
 		pizzas: () => pizzas,
 		filters: () => filters,
 		toggleYummy: function (ing) {
 			ing.toggleYummy()
-			store.computePizzas()
+			store.computeAll()
 		},
 		toggleYuck: function (ing) {
 			console.log('into toggleYuck', arguments)
 			console.log('into toggleYuck ing', ing)
 			ing.toggleYuck()
-			store.computePizzas()
+			store.computeAll()
 		},
 		toggleFilter: function (filter) {
 			filter.toggle()
-			store.computePizzas()
+			store.computeAll()
 		},
-		computePizzas: function () {
+		computeAll: function () {
 			let visibleRank = 0
 			let enabledFilters = filters.filter(f => f.status() === status.ENABLED)
-			pizzas.forEach(function(p){
-				p.compute(enabledFilters)
-			})
+			pizzas.forEach(p => p.compute(enabledFilters))
 			pizzas.sort(sortby().desc(p => p.score()).asc('defaultOrder'))
-			pizzas.forEach(function(p){
-				p.rank(p.visible() ? visibleRank++ : 0)
-			})
+			pizzas.forEach(p => p.rank(p.visible() ? visibleRank++ : 0))
+			filters.forEach(f => f.setMatchingPizzas(pizzas))
 			store.trigger()
 		}
 	}
@@ -148,6 +145,16 @@ let Filter = function(data) {
 	filter.reject = function(pizza) {
 		return ! filter.accept(pizza)
 	}
+	let selfPizzas = []
+	filter.setMatchingPizzas = function(pizzas) {
+		selfPizzas = pizzas.filter(p => filter.accept(p))
+	}
+	filter.hasHiddenPizzas = function() {
+		return selfPizzas.some(function(p){
+			return !p.visible()
+		})
+	}
+	filter.matchingPizzas = () => selfPizzas.slice()
 	return filter
 }
 

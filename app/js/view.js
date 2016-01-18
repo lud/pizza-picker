@@ -1,4 +1,5 @@
 import {status} from 'constants'
+let call = require('helpers/call')
 let get = require('helpers/get')
 let interleave = require('helpers/interleave')
 let m = require('mithril')
@@ -26,6 +27,11 @@ function make(api, store, opts) {
 						' ',
 						filter.name
 					]),
+					' ',
+					m('span', ['(', filter.hasHiddenPizzas()
+						? [m('span', {'class': 'filter-'+status.YUCK}, filter.matchingPizzas().length),' ',filter.matchingPizzas().filter(call('visible')).length]
+						: filter.matchingPizzas().length
+					 ,')'])
 				])
 			)),
 			m('ul.pizzas', store.pizzas().reverse().map((p, i) =>
