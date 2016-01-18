@@ -56,9 +56,8 @@ let onResize = fsignal()
 let listenerAdded = false
 function maybeAddGlobalListener() {
 	if (!listenerAdded) {
-		console.log('adding responsive data global listener')
 		let listener = function() {
-			onResize([getClient()])
+			onResize(getClient())
 		}
 		window.addEventListener('resize', throttle(listener, 200, {trailing: true}))
 		listenerAdded = true
@@ -76,7 +75,9 @@ module.exports = function(_configs, listener) {
 		if (listener) listener(current, client)
 	})
 	return {
-		get: () => current,
+		get: function(){
+			return current
+		},
 		client: () => client,
 		forget: () => onResize.remove(calculatorListenerId)
 	}

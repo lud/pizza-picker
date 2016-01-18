@@ -8,7 +8,7 @@ let morpheus = require('morpheus')
 function make(api, store, opts) {
 	let el = opts.container
 	let view = {}
-	let render = () => m.render(el, view.content())
+	let render = () => m.render(el, content())
 
 	// listen to the resize changes anf
 	api.windowResize.listen(render)
@@ -16,8 +16,8 @@ function make(api, store, opts) {
 	// Listen to the store change events and render the view
 	store.change.listen(render)
 
-	// Get the content for the view
-	view.content = function() {
+		// Get the content for the view
+	function content() {
 		return m('div', [
 			m('ul.ingredients', store.ingredients().map((ing, i) =>
 				m('li', {'class': 'status-' + ing.status()}, [
@@ -40,33 +40,32 @@ function make(api, store, opts) {
 					 ,')'])
 				])
 			)),
-			m('ul.pizzas', store.pizzas().reverse().map((p, i) =>
-				m('li', {key: p.id, config: fadeInOut(p, opts)}, [
-					m('div.img', m('img',{src:'http://fakeimg.pl/100x100/ffffff/'})), // image wrapper
-					// m('span', ' - '),
-					// m('span', ['score: ',p.score()]),
-					// m('span', ' - '),
-					// m('span', ['rank: ',p.prevRank(), ' => ', p.rank()]),
-					// m('span', ' - '),
-					// m('span', ['defaultOrder: ',p.defaultOrder]),
-					// m('span', ' - '),
-					m('ul.prices', {'class': 'sizes'}, opts.sizes.map(function(size){
-						if (p.prices[size]) {
-							return m('li', [m.trust('&Oslash; '), size, opts.sizeUnit, ' : ', opts.formatPrice(p.prices[size])])
-						}
-					})),
-					m('div.infos', [
-						m('h3', p.name),
-						m('p', {'class': 'ingredients'}, [interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')]),
-					])
-				])
-			)),
+			m('ul.pizzas', store.pizzas().reverse().map((p, i) => formatPizza(p, i, opts))),
 		])
 	}
+
 	return view
 }
 
 module.exports = {make}
+
+
+function formatPizza(p, index, opts) {
+	let elements = [], style = opts.style.get()
+	if (style.device !== 'smallest') {
+		elements.push(m('div.img', m('img',{src:'http://fakeimg.pl/100x100/ffffff/'})))
+	}
+	elements.push(m('ul.prices', {'class': 'sizes'}, opts.sizes.map(function(size){
+		if (p.prices[size]) {
+			return m('li', [m.trust('&Oslash; '), size, opts.sizeUnit, ' : ', opts.formatPrice(p.prices[size])])
+		}
+	})))
+	elements.push(m('div.infos', [
+		m('h3', p.name),
+		m('p', {'class': 'ingredients'}, [interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')]),
+	]))
+	return m('li', {key: p.id, config: fadeInOut(p, opts)}, [elements])
+}
 
 function fadeInOut(pizza, opts) {
 
@@ -75,7 +74,6 @@ function fadeInOut(pizza, opts) {
 	return function(el, isInitialized, context, vEl) {
 		let pHeight = opts.style.get().pizzaRowHeightPx
 		let pMargin = opts.style.get().pizzaRowMarginPx
-		console.log('opts.style.get()',opts.style.get())
 		let appearing = !isInitialized || !pizza.wasVisible() && pizza.visible()
 		let disappearing = pizza.wasVisible() && !pizza.visible()
 		let rankChanged = pizza.rank() !== pizza.prevRank()

@@ -59,11 +59,28 @@ function setDefaultOpts (opts) {
 		renderPizzas: true,
 		// Styles makes use of responsive-data system
 		style: [
+			{
+				minWidth: 768,
+				data: {
+					device: 'medium',
+					pizzaRowHeightPx: 100,
+					pizzaRowMarginPx: 5,
+				}
+			},
+			{
+				minWidth: 480,
+				data: {
+					device: 'small',
+					pizzaRowHeightPx: 100,
+					pizzaRowMarginPx: 5,
+				}
+			},
 			// this is the default with no constraint. It is specified last
 			// because we select the fist matching constraints and this one has
 			// no constraint to match (matches all cases)
 			{
 				data: {
+					device: 'smallest',
 					pizzaRowHeightPx: 100,
 					pizzaRowMarginPx: 5,
 				}

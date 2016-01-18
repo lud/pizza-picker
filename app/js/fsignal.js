@@ -73,7 +73,6 @@ module.exports = function fsignal(_opts) {
 	}
 
 	let trigger = (!opts.async) ? calls : function(args) {
-		console.trace('here')
 		let args = Array.prototype.slice.call(arguments)
 		setTimeout(() => calls.apply(null, args), 0)
 	}
