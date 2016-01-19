@@ -88,8 +88,8 @@ function getClient() {
 	let height = document.documentElement.clientHeight
 	// square is portrait
 	let orientation = (width > height) ? 'landscape' : 'portrait'
-	let portrait = (height > width)
-	let landscape = (height > width)
+	let portrait = (height >= width)
+	let landscape = (width > height)
 	return {width, height, orientation}
 }
 
