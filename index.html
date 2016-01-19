@@ -9,43 +9,126 @@
 	margin:0;
 	padding:0;
 	box-sizing: border-box;
+	font-family: sans-serif;
 }
 .pizza-picker {
 	display:block;
-	margin:1em;
-	font-size:16px;
+	font-size:12px;
 }
 .pizza-picker ul, .pizza-picker li {
 	list-style: none outside none;
-	padding:0;
 }
 .pizza-picker a {
-	color:grey;
-	text-decoration: none;
-	font-weight: bold;
 	cursor: pointer;
 }
 
+ul.ingredients li {
+	wdith:100%;
+	display:flex;
+	height:26px;
+	line-height:26px;
+	margin:2px 0;
+}
+ul.ingredients li + li {
+	border-top: 1px dashed #ccc;
+}
+ul.ingredients li > * {
+	vertical-align: middle;
+}
+ul.ingredients li > span {
+	flex:1;
+}
 ul.ingredients li a {
-	padding:0 5px;
+	text-align:center;
+	margin: 3px 5px;
+	margin:3px;
+	line-height:20px;
+	border:1px solid #888;
+	color:#888;
+	height:20px;
+	width:20px;
+	display:inline-block;
+	border-radius:10px;
+	-moz-border-radius:10px;
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select:none;
 	user-select:none;
-	-o-user-select:none
+	-o-user-select:none;
 }
 
 ul.ingredients li.status-yummy a.yummy {
-	color:pink;
+	background:pink;
+	color:white;
 }
 ul.ingredients li.status-yuck a.yuck {
-	color:red;
+	color: red;
 }
 ul.ingredients li.status-yuck span, .filter-yuck {
 	color: red;
 	text-decoration: line-through;
 }
-filters .active a {
+/** switches **/
+/* .ppswitch {
+    position: relative; width: 63px;
+    height:20px;
+    display:inline-block;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.ppswitch-checkbox {
+    display: none;
+}
+.ppswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 1px solid #999999; border-radius: 20px;
+}
+.ppswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.ppswitch-inner:before, .ppswitch-inner:after {
+    display: block; float: left; width: 50%; height: 20px; padding: 0; line-height: 20px;
+    font-size: 12px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    box-sizing: border-box;
+}
+.ppswitch-inner:before {
+    content: "ON";
+    padding-left: 10px;
+    background-color: #A5D164; color: #FFFFFF;
+}
+.ppswitch-inner:after {
+    content: "OFF";
+    padding-right: 10px;
+    background-color: #EEEEEE; color: #999999;
+    text-align: right;
+}
+.ppswitch-switch {
+    display: block; width: 14px; margin: 3px;
+    background: #FFFFFF;
+    position: absolute; top: 0; bottom: 0;
+    right: 39px;
+    border: 1px solid #999999; border-radius: 20px;
+    transition: all 0.3s ease-in 0s;
+}
+.ppswitch-checkbox:checked + .ppswitch-label .ppswitch-inner {
+    margin-left: 0;
+}
+.ppswitch-checkbox:checked + .ppswitch-label .ppswitch-switch {
+    right: 0px;
+} */
+/** end switches **/
+
+ul.filters li {
+	wdith:100%;
+	display:flex;
+	height:26px;
+	line-height:26px;
+	margin:2px 0;
+}
+ul.filters li + li {
+	border-top: 1px dashed #ccc;
+}
+ul.filters .active a {
 	color:green;
 }
 ul.pizzas {
@@ -58,6 +141,7 @@ ul.pizzas > li {
 	overflow:hidden;
 	position: absolute;
 	height: 50px;
+	/*box-shadow:1px 1px 10px #aaa;*/
 }
 ul.pizzas > li > * {
 	vertical-align:top;
@@ -82,6 +166,7 @@ ul.pizzas > li ul.prices {
 	margin:5px;
 	border-left:1px dashed #aaa;
 }
+/*
 ul.pizzas h3 {
 	padding:0;
 	margin:0;
@@ -91,10 +176,9 @@ ul.pizzas > li .ingredients .yummy {
 	color: pink;
 }
 body {
-	/*font-family: monospace;*/
 	background: #313131;
 }
-
+*/
 
 </style>
 

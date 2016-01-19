@@ -26,7 +26,7 @@ model.make = function(api, opts) {
 	}).sort(sortby('name'))
 	let ingredientsList = ovals(ingredients).sort()
 	let store = {
-		change: fsignal(),
+		change: fsignal({async: false}),
 		trigger: function() {
 			store.change()
 		},
@@ -53,7 +53,13 @@ model.make = function(api, opts) {
 			filter.toggle()
 			store.computeAll()
 		},
+		windowResize: function(){
+			// we must listen to this pure UI event in order to set the previous
+			// rank of pizzas to their current rank
+			store.computeAll()
+		},
 		computeAll: function () {
+			console.log('compute !')
 			let visibleRank = 0
 			let enabledFilters = filters.filter(f => f.status() === status.ENABLED)
 			pizzas.forEach(p => p.compute(enabledFilters))

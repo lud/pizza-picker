@@ -52,7 +52,7 @@ let fsignal = require('fsignal')
 
 // add the listener for the event resizes. One single listener for many possible
 // configuration
-let onResize = fsignal()
+let onResize = fsignal({async: false})
 let listenerAdded = false
 function maybeAddGlobalListener() {
 	if (!listenerAdded) {

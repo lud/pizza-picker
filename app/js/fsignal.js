@@ -64,6 +64,10 @@ module.exports = function fsignal(_opts) {
 	}
 
 	let calls = function() {
+		if (opts.async) {
+			console.log('calling with opts.async', opts.async)
+			console.log(listeners)
+		}
 		let i = llen,
 		    listener
 		while(i--) {
