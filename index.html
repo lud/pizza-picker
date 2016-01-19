@@ -140,8 +140,7 @@ ul.pizzas > li {
 	line-height: 2em;
 	overflow:hidden;
 	position: absolute;
-	height: 50px;
-	/*box-shadow:1px 1px 10px #aaa;*/
+	box-shadow:1px 1px 10px #aaa;
 }
 ul.pizzas > li > * {
 	vertical-align:top;
@@ -157,6 +156,7 @@ ul.pizzas > li div.img {
 }
 ul.pizzas > li div.infos {
 	display:block;
+	paddin:0 5px;
 }
 ul.pizzas > li ul.prices {
 	float:right;
@@ -166,11 +166,23 @@ ul.pizzas > li ul.prices {
 	margin:5px;
 	border-left:1px dashed #aaa;
 }
-/*
 ul.pizzas h3 {
-	padding:0;
-	margin:0;
+	height:40px;
+	font-size:16px;
+	line-height:40px;
 }
+ul.pizzas p.ingredients {
+	height:60px;
+	line-height:60px;
+	display: table;
+}
+ul.pizzas div.ingredients p {
+	height:60px;
+	line-height: 30px;
+	vertical-align: middle;
+	display: table-cell;
+}
+/*
 ul.pizzas > li .ingredients .yummy {
 	text-decoration: underline;
 	color: pink;

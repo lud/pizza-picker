@@ -53,13 +53,14 @@ function make(api, store, opts) {
 						m('a', {onclick: e => api.toggleFilter(filter)}, [
 							m('span', m.trust(filter.status() === status.ENABLED ? '&#9745;' : '&#9744;')),
 							' ',
-							filter.name
-						]),
-						' ',
-						m('span', ['(', filter.hasHiddenPizzas()
-							? [m('span', {'class': 'filter-'+status.YUCK}, filter.matchingPizzas().length),' ',filter.matchingPizzas().filter(call('visible')).length]
-							: filter.matchingPizzas().length
-						 ,')'])
+							filter.name,
+							' ',
+							m('span', ['(', filter.hasHiddenPizzas()
+								? [m('span', {'class': 'filter-'+status.YUCK}, filter.matchingPizzas().length),' ',filter.matchingPizzas().filter(call('visible')).length]
+								: filter.matchingPizzas().length
+							,')'])
+						])
+
 					])
 				))
 			]),
@@ -101,7 +102,9 @@ function formatPizza(p, index, opts) {
 	})))
 	elements.push(m('div.infos', [
 		m('h3', p.name),
-		m('p', {'class': 'ingredients'}, [interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')]),
+		m('div', {'class': 'ingredients'},
+			m('p' ,[interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')])
+		),
 	]))
 	return m('li', {key: p.id, config: fadeInOut(p, opts)}, [elements])
 }
