@@ -1,4 +1,5 @@
 let extend = require('extend')
+let formatPrice = require('helpers/format-price')
 let fsignal = require('fsignal')
 let storeFactory = require('store')
 let viewFactory = require('view')
@@ -46,9 +47,6 @@ function setDefaultOpts (opts) {
 		container:'pizzapicker',
 		events:{},
 		filters:{},
-		formatPrice: function(price){
-			return price.toLocaleString() + ' €'
-		},
 		ingredients:{},
 		locale:'en',
 		pizzas:[],
@@ -88,4 +86,5 @@ function setDefaultOpts (opts) {
 	}, opts)
 }
 
-
+// export the price formatter for the i18n files
+PizzaPicker.priceFormatter = formatPrice.formatter

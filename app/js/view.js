@@ -88,13 +88,15 @@ module.exports = {make}
 
 
 function formatPizza(p, index, opts) {
-	let elements = [], style = opts.style.get()
+	let elements = [],
+	    style = opts.style.get(),
+	    lc = PizzaPicker.i18n[opts.locale]
 	if (style.device !== 'smallest') {
 		elements.push(m('div.img', m('img',{src:'http://fakeimg.pl/100x100/ffffff/'})))
 	}
 	elements.push(m('ul.prices', {'class': 'sizes'}, opts.sizes.map(function(size){
 		if (p.prices[size]) {
-			return m('li', [m.trust('&Oslash; '), size, opts.sizeUnit, ' : ', opts.formatPrice(p.prices[size])])
+			return m('li', [m.trust('&Oslash; '), size, opts.sizeUnit, ' : ', lc.formatPrice(p.prices[size])])
 		}
 	})))
 	elements.push(m('div.infos', [

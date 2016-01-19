@@ -10,3 +10,4 @@ lc.selected_pizzas_count = lang.ofCount({
 })
 lc.ingredients_menu = 'Filtrer par ingredients'
 lc.filters_menu = 'Filtrer par type'
+lc.formatPrice = PizzaPicker.priceFormatter(2, ',', ' ', '%s €')
