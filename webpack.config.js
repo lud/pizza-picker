@@ -25,14 +25,11 @@ module.exports = {
 		filename: "[name].js"
 	},
 	module: {
-		preLoaders: [
-			{ test: /\.tag$/, exclude: /node_modules/, loader: 'riotjs-loader', query: { type: 'none' } }
-		],
+		preLoaders: [],
 		loaders: [
-			{ test: /\.js|\.tag$/, exclude: /node_modules/, loader: 'babel-loader'}
+			{ test: /\.js/, exclude: /node_modules/, loader: 'babel-loader'}
 		]
 	},
-	amd: {phoenix: false},
 	resolve: {
 		modulesDirectories: ['app/js','node_modules']
 	},
