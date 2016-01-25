@@ -1,40 +1,9 @@
-
-
-
-// if the module has no dependencies, the above pattern can be simplified to
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], factory);
-    } else if (typeof module === 'object' && module.exports) {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
-    } else {
-        // Browser globals (root is window)
-        root.returnExports = factory();
-  }
-}(this, function () {
-
-    // Just return a value to define the module export.
-    // This example returns an object, but the module
-    // can return a function as the exported value.
-    return {};
-}));
-
-// if the module has no dependencies, the above pattern can be simplified to
-(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
         define(['helpers/assert', 'extend'], factory);
     } else if (typeof module === 'object' && module.exports) {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
         module.exports = factory(require('helpers/assert'), require());
     } else {
-        // Browser globals (root is window)
         throw new Error('not available without build')
         root.returnExports = factory();
   }
@@ -78,17 +47,6 @@
 		let id = 0
 		let llen = 0 // listeners.length
 
-		let listen = function(fn, context) {
-			assert(typeof fn === 'function', "No callback given")
-			let listenerId = ++id
-			let listener = {
-				f: fn, c:context, id: listenerId
-			}
-			listeners.unshift(listener)
-			llen = listeners.length
-			return listenerId
-		}
-
 		let remove = function(id) {
 			let i = llen
 			while(i--) {
@@ -102,11 +60,25 @@
 			return void 0
 		}
 
-		let calls = function() {
-			if (opts.async) {
-				console.log('calling with opts.async', opts.async)
-				console.log(listeners)
+
+		let listen = function(fn, context) {
+			assert(typeof fn === 'function', "Signal listener must be a function, %s given", typeof fn)
+			let listenerId = ++id
+			let listener = {
+				f: fn, c:context, id: listenerId
 			}
+			listeners.unshift(listener)
+			llen = listeners.length
+			return function() {
+				remove(listenerId)
+			}
+		}
+
+		let calls = function() {
+			// if (opts.async) {
+				// console.log('calling with opts.async', opts.async)
+				// console.log(listeners)
+			// }
 			let i = llen,
 			    listener
 			while(i--) {
@@ -115,8 +87,7 @@
 			}
 		}
 
-		let trigger = (!opts.async) ? calls : function(args) {
-			let args = Array.prototype.slice.call(arguments)
+		let trigger = (!opts.async) ? calls : function(...args) {
 			setTimeout(() => calls.apply(null, args), 0)
 		}
 

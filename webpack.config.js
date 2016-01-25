@@ -27,7 +27,7 @@ module.exports = {
 	module: {
 		preLoaders: [],
 		loaders: [
-			{ test: /\.js/, exclude: /node_modules/, loader: 'babel-loader'}
+			{ test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'}
 		]
 	},
 	resolve: {
@@ -38,7 +38,6 @@ module.exports = {
 	},
 	devtool: Number(process.env.APP_DEBUG) ? '#eval-source-map' : this.undefined,
 	plugins: [
-		new webpack.ProvidePlugin({riot: 'riot'}),
 		new webpack.optimize.OccurenceOrderPlugin(true),
 		new webpack.optimize.UglifyJsPlugin({minimize: true}),
 		new webpack.optimize.DedupePlugin()
