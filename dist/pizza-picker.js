@@ -2760,6 +2760,13 @@
 			return {
 				tag: 'div',
 				children: [{
+					tag: 'a',
+					children: [lc.show_menu],
+					attrs: { onclick: api.toggleMenu }
+				}, {
+					tag: 'a',
+					attrs: { onclick: api.toggleMenu, className: 'picker-bt-menu' }
+				}, {
 					tag: 'div',
 					children: [{
 						tag: 'h3',

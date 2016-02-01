@@ -25,6 +25,8 @@ function make(api, store, opts) {
 	function content() {
 		let lc = PizzaPicker.i18n[opts.locale]
 		return <div class={picker-opts.style.get().device}>
+			<a onclick={api.toggleMenu}>{lc.show_menu}</a>
+			<a onclick={api.toggleMenu} class="picker-bt-menu"></a>
 			<div class="picker-menu">
 				<h3>{lc.ingredients_menu}</h3>
 				<ul class="ingredients">
@@ -67,7 +69,6 @@ function make(api, store, opts) {
 }
 
 module.exports = {make}
-
 
 function formatPizza(p, index, opts) {
 	let elements = [],

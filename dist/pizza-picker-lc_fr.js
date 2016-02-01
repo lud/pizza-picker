@@ -62,6 +62,7 @@
 	});
 	lc.ingredients_menu = 'Filtrer par ingredients';
 	lc.filters_menu = 'Filtrer par type';
+	lc.show_menu = 'Choisir les ingrédients';
 	lc.formatPrice = PizzaPicker.priceFormatter(2, ',', ' ', '%s €');
 
 /***/ },
