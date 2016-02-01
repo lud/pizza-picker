@@ -10,9 +10,11 @@
   "author": "ludovic demblans <ludovic@demblans.com>",
   "license": "MIT",
   "devDependencies": {
-    "babel": "^4.7.16",
-    "babel-core": "^4.7.16",
-    "babel-loader": "^4.2.0",
+    "babel": "^6.3.26",
+    "babel-core": "^6.4.5",
+    "babel-loader": "^6.2.1",
+    "babel-plugin-mjsx": "^4.0.0",
+    "babel-preset-es2015": "^6.3.13",
     "dotenv": "^0.5.1",
     "webpack": "^1.7.3"
   },

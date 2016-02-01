@@ -1,3 +1,5 @@
 node_modules
 npm-debug.log
 .env
+dist/pizza-picker.js.map
+dist/pizza-picker-lc_fr.js.map

@@ -2,7 +2,7 @@ let extend = require('extend')
 let formatPrice = require('helpers/format-price')
 let fsignal = require('fsignal')
 let storeFactory = require('store')
-let viewFactory = require('view')
+let viewFactory = require('./view.jsx')
 let respdata = require('responsive-data')
 
 // app
