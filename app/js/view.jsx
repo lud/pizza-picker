@@ -83,9 +83,7 @@ function formatPizza(p, index, opts) {
 	}
 	elements.push(
 		<ul class="prices">
-			{opts.sizes.map(size => p.prices.size
-				? <li>&Oslash; {size + opts.sizeUnit} : {lc.formatPrice(p.prices[size])}</li>
-				: void 0)
+			{opts.sizes.map(size => (p.prices[size] && <li>&Oslash; {size + opts.sizeUnit} : {lc.formatPrice(p.prices[size])}</li>))
 			}
 		</ul>
 	)
