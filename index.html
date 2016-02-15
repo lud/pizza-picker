@@ -68,58 +68,9 @@ ul.ingredients li.status-yuck span, .filter-yuck {
 	color: red;
 	text-decoration: line-through;
 }
-/** switches **/
-/* .ppswitch {
-    position: relative; width: 63px;
-    height:20px;
-    display:inline-block;
-    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
-}
-.ppswitch-checkbox {
-    display: none;
-}
-.ppswitch-label {
-    display: block; overflow: hidden; cursor: pointer;
-    border: 1px solid #999999; border-radius: 20px;
-}
-.ppswitch-inner {
-    display: block; width: 200%; margin-left: -100%;
-    transition: margin 0.3s ease-in 0s;
-}
-.ppswitch-inner:before, .ppswitch-inner:after {
-    display: block; float: left; width: 50%; height: 20px; padding: 0; line-height: 20px;
-    font-size: 12px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
-    box-sizing: border-box;
-}
-.ppswitch-inner:before {
-    content: "ON";
-    padding-left: 10px;
-    background-color: #A5D164; color: #FFFFFF;
-}
-.ppswitch-inner:after {
-    content: "OFF";
-    padding-right: 10px;
-    background-color: #EEEEEE; color: #999999;
-    text-align: right;
-}
-.ppswitch-switch {
-    display: block; width: 14px; margin: 3px;
-    background: #FFFFFF;
-    position: absolute; top: 0; bottom: 0;
-    right: 39px;
-    border: 1px solid #999999; border-radius: 20px;
-    transition: all 0.3s ease-in 0s;
-}
-.ppswitch-checkbox:checked + .ppswitch-label .ppswitch-inner {
-    margin-left: 0;
-}
-.ppswitch-checkbox:checked + .ppswitch-label .ppswitch-switch {
-    right: 0px;
-} */
-/** end switches **/
 
 ul.filters li {
-	wdith:100%;
+	width:100%;
 	display:flex;
 	height:26px;
 	line-height:26px;
@@ -141,6 +92,18 @@ ul.pizzas > li {
 	overflow:hidden;
 	position: absolute;
 	box-shadow:1px 1px 10px #aaa;
+}
+ul.pizzas > li.filter-in {
+	opacity: 1;
+	/*height: 100px;*/
+	z-index: 101;
+	transition: transform .2s ease-in-out .25s, opacity .2s ease-in-out .25s;
+}
+ul.pizzas > li.filter-out {
+	opacity: 0;
+	/*height: 0px;*/
+	z-index: 100;
+	transition: opacity .2s ease-in-out, transform .2s ease-in-out .4s;
 }
 ul.pizzas > li > * {
 	vertical-align:top;

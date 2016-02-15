@@ -3,7 +3,6 @@ let call = require('helpers/call')
 let get = require('helpers/get')
 let interleave = require('helpers/interleave')
 let m = require('mithril')
-let morpheus = require('morpheus')
 
 function make(api, store, opts) {
 	let el = opts.container
@@ -89,71 +88,29 @@ function formatPizza(p, index, opts) {
 	)
 	elements.push(
 		<div class="infos">
-			<h3>{p.name}</h3>
+			<h3>{p.rank()} {p.name}</h3>
 			<div class="ingredients">
 				<p>{interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')}</p>
 			</div>
 		</div>
 	)
-	return <li key={p.id} config={fadeInOut(p, opts)}>
+
+	let pHeight = opts.style.get().pizzaRowHeightPx
+	let pMargin = opts.style.get().pizzaRowMarginPx
+	let visible = p.visible()
+	let rankChanged = p.rank() !== p.prevRank()
+	let rank = p.rank()
+	let top = visible
+		? rank * (pHeight + pMargin)
+		: 0
+	let transform = 'translateY(' + top + 'px)'
+
+	return <li key={p.id}  style={{transform: transform}} className={visible ? 'filter-in' : 'filter-out'}>
 		{elements}
 	</li>
 }
 
-function fadeInOut(pizza, opts) {
 
-	let animDuration = 300
-
-	return function(el, isInitialized, context, vEl) {
-		let pHeight = opts.style.get().pizzaRowHeightPx
-		let pMargin = opts.style.get().pizzaRowMarginPx
-		let appearing = !isInitialized || !pizza.wasVisible() && pizza.visible()
-		let disappearing = pizza.wasVisible() && !pizza.visible()
-		let rankChanged = pizza.rank() !== pizza.prevRank()
-		if (appearing) {
-			console.log('appearing !')
-			el.style.height = 0
-			el.style.opacity = 0
-			morpheus([el], {
-				height: pHeight,
-				duration: animDuration / 2,
-				complete: function() {
-					morpheus([el], {
-						opacity: 1,
-						duration: animDuration / 2
-					})
-				}
-			})
-		} else if (disappearing) {
-			console.log('disappearing !')
-			morpheus([el], {
-				opacity: 0,
-				duration: animDuration / 2,
-				complete: function() {
-					morpheus([el], {
-						height: 0,
-						duration: animDuration / 2
-					})
-				}
-			})
-		}
-		// pizza has moved.
-		if (appearing || pizza.visible() && rankChanged) {
-			if (appearing) {
-				el.style.top = 0 // allow the first move on load
-			}
-			let top = String(pizza.rank() * (pHeight + pMargin)) + 'px'
-			console.warn('@todo use transform instead of top for better perfs')
-			morpheus([el], {
-				top: top,
-				duration: animDuration,
-				complete: function() {
-					el.style.top = top
-				}
-			})
-		}
-	}
-}
 
 function formatIngredient(ing, opts) {
 	if (ing.status() === status.YUMMY) {

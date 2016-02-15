@@ -49,7 +49,7 @@
 	
 	// 1. Define the namespace
 	var lc = window.PizzaPicker.i18n.fr = {};
-	var lang = __webpack_require__(14);
+	var lang = __webpack_require__(12);
 	
 	// 3. Define the strings and functions
 	lc.selected_pizzas_count = lang.ofCount({
@@ -67,7 +67,7 @@
 
 /***/ },
 
-/***/ 14:
+/***/ 12:
 /***/ function(module, exports) {
 
 	'use strict';
