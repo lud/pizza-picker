@@ -143,6 +143,7 @@ function fadeInOut(pizza, opts) {
 				el.style.top = 0 // allow the first move on load
 			}
 			let top = String(pizza.rank() * (pHeight + pMargin)) + 'px'
+			console.warn('@todo use transform instead of top for better perfs')
 			morpheus([el], {
 				top: top,
 				duration: animDuration,
