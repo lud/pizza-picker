@@ -11,7 +11,7 @@ function make(api, store, opts) {
 	let render = function(){
 		let ct = content()
 		console.log('render pizzas')
-		ct.children[2].children[0].map(li => console.log(' - ', li.attrs.key))
+		ct.children[1].children[0].map(li => console.log(' - ', li.attrs.key))
 		m.render(el, ct)
 	}
 
@@ -26,15 +26,15 @@ function make(api, store, opts) {
 	function content() {
 		let lc = PizzaPicker.i18n[opts.locale]
 		return <div class={opts.style.get().wrapperCssClass + ' ' + (menuActive?'view-menu':'view-pizzas')}>
-			<div class="picker-menu-toggle">
-				<a onclick={api.toggleMenu}>{lc.show_menu}</a>
-				<a onclick={api.toggleMenu} class="picker-bt-menu">
-					<span class="bt-top" />
-					<span class="bt-middle" />
-					<span class="bt-bottom" />
-				</a>
-			</div>
 			<div class="picker-menu">
+				<div class="picker-menu-toggle">
+					<a onclick={api.toggleMenu}>{lc.show_menu}</a>
+					<a onclick={api.toggleMenu} class="picker-bt-menu">
+						<span class="bt-top" />
+						<span class="bt-middle" />
+						<span class="bt-bottom" />
+					</a>
+				</div>
 				<h3>{lc.ingredients_menu}</h3>
 				<ul class="picker-ingredients">
 					{store.ingredients().map((ing, i) =>

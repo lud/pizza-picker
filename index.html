@@ -21,7 +21,6 @@
 	-o-transform: translateZ(0);
 	transform: translateZ(0);
 }
-
 .pizza-picker ul, .pizza-picker li {
 	list-style: none outside none;
 }
@@ -29,57 +28,106 @@
 	cursor: pointer;
 }
 
-.pizza-picker .picker-menu-toggle {
-	padding: 5px;
-	text-align: right;
+/** variable @todo menuToggleHeight is the height always-visible of the menu,
+showing the toggle button **/
+/* @menuToggleHeight = 35px */
+
+.pizza-picker .picker-menu {
+	position: relative; /* not fixed because we're embedded in websites */
+	transition: height .3s linear;
+	z-index: 102;
+	background: #fff;
+	/*position: absolute;*/
+	top:0;
+	width: 100%;
+    -webkit-transition: max-height .4s ease-out;
+    transition: max-height .4s ease-out;
+    overflow: hidden;
+    background:#313131;
+    color: #efefef;
+    padding:5px;
 }
 
-.pizza-picker .picker-menu-toggle a {
+.pizza-picker.picker-swapmenu.view-pizzas .picker-menu {
+	max-height: 40px; /* @menuToggleHeight + padding 5*/
+}
+.pizza-picker.picker-swapmenu.view-menu .picker-menu {
+	max-height: 100vh;
+}
+
+.pizza-picker .picker-menu-toggle {
+	text-align: right;
+	height: 35px; /* @menuToggleHeight */
+}
+
+.pizza-picker .picker-menu-toggle > a {
 	display: inline-block;
 	vertical-align: middle;
-	padding: 0 5px;
+	padding:0 0 0 5px;
+	text-align: right;
+	height: 30px;  /* @menuToggleHeight  - 5px*/
+	line-height: 30px; /* @menuToggleHeight  - 5px*/
+}
+
+/** hamburger icon **/
+
+.pizza-picker .picker-bt-menu {
+	position: relative;
+	width: 30px;
+	padding:0 5px;
 }
 
 .pizza-picker .picker-bt-menu span {
-	-moz-transition: all .1s ease .35s;
-	-ms-transition: all .1s ease .35s;
-	-webkit-transition: all .1s ease .35s;
-	/* position: absolute; */
+	position: absolute;
 	background-color: #666;
 	clear: both;
 	display: block;
 	height: 3px;
 	margin: 0 auto 3px;
+	left: 7px;
 	overflow: hidden;
 	text-indent: -9999px;
-	transition: all .1s ease .35s;
 	width: 20px;
+	/* reverse transform */
+	transition: top .2s ease .1s, opacity .001s linear .3s, transform .2s ease .3s;
+	transition: transform .2s ease .1s, opacity .001s linear .3s, top .2s ease .3s;
 }
 
-.pizza-picker .picker-menu {
-	position: relative; /* not fixed because we're embedded in websites */
-	/*float: right;*/
-	transition: height .3s linear;
-	z-index: 102;
-	background: #fff;
-	/*position: absolute;*/
-	width: 100%;
-	/*overflow: hidden;*/
+.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu span {
+	transition: top .2s ease .1s, opacity .001s linear .3s, transform .2s ease .3s;
 }
 
-.pizza-picker.picker-swapmenu.view-pizzas .picker-menu {
-	height: 300px;
+.pizza-picker .picker-bt-menu .bt-top {
+	top: 7px;
 }
-.pizza-picker.picker-swapmenu.view-menu .picker-menu {
-	/*height: 0;*/
+.pizza-picker .picker-bt-menu .bt-middle {
+	top: 13px;
+}
+.pizza-picker .picker-bt-menu .bt-bottom {
+	top: 19px;
+}
+
+/** hamburger crossed icon **/
+
+.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-top {
+	transform: rotate(45deg);
+	top: 13px; /* 7px + 6 */
+}
+.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-middle {
+	opacity: 0;
+}
+.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-bottom {
+	transform: rotate(-45deg);
+	top: 13px; /* 19 - 6 */
 }
 
 ul.picker-ingredients li {
-	wdith:100%;
+
+	width:100%;
 	display:flex;
 	height:26px;
 	line-height:26px;
-	margin:2px 0;
+	margin: 2px 0;
 }
 ul.picker-ingredients li + li {
 	border-top: 1px dashed #ccc;
@@ -134,7 +182,13 @@ ul.picker-filters li + li {
 ul.picker-filters .on a {
 	color:green;
 }
+
+
+
 ul.picker-pizzas {
+	/* @menuToggleHeight + menu padding 5 + space between */
+	/*padding-top: 45px;*/
+	padding-top: 5px;
 }
 /**
  * <li/> animation
@@ -145,7 +199,7 @@ ul.picker-pizzas {
  * --------------+------------+---------------+-----------
  * filter-in     |            |  translate Y  |  fade-in
  * filter-out    |  fade-out  |  translate Y  |
- * filter-move   |            |  translate Y  |
+ * filter-move   |        ranslate Y          |
  *
  **/
 ul.picker-pizzas > li {
@@ -160,7 +214,7 @@ ul.picker-pizzas > li {
 }
 ul.picker-pizzas > li.filter-move {
 
-	                                     /* delay for phase-1 */
+
 	transition: transform .4s ease-in-out;
 }
 ul.picker-pizzas > li.filter-in {

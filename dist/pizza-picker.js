@@ -46,17 +46,17 @@
 
 	'use strict';
 	
-	var extend = __webpack_require__(3);
-	var formatPrice = __webpack_require__(8);
+	var extend = __webpack_require__(4);
+	var formatPrice = __webpack_require__(9);
 	var fsignal = __webpack_require__(2);
-	var storeFactory = __webpack_require__(14);
-	var viewFactory = __webpack_require__(21);
-	var respdata = __webpack_require__(13);
+	var storeFactory = __webpack_require__(16);
+	var viewFactory = __webpack_require__(17);
+	var respdata = __webpack_require__(15);
 	
 	// app
 	var PizzaPicker = { i18n: {} };
 	window.PizzaPicker = PizzaPicker;
-	window.m = __webpack_require__(6);
+	window.m = __webpack_require__(5);
 	
 	PizzaPicker.create = function (_opts) {
 		var opts = setDefaultOpts(_opts);
@@ -183,7 +183,7 @@
 	
 	(function (root, factory) {
 		if (true) {
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4), __webpack_require__(3)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(7), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 		} else if ((typeof module === 'undefined' ? 'undefined' : _typeof(module)) === 'object' && module.exports) {
 			module.exports = factory(require('helpers/assert'), require());
 		} else {
@@ -292,6 +292,18 @@
 /* 3 */
 /***/ function(module, exports) {
 
+	"use strict";
+	
+	module.exports = function (k) {
+	  return function (o) {
+	    return o[k];
+	  };
+	};
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
 	'use strict';
 	
 	var hasOwn = Object.prototype.hasOwnProperty;
@@ -381,35 +393,7 @@
 
 
 /***/ },
-/* 4 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	module.exports = function (value, errorText) {
-		var sprintfValues = Array.prototype.slice.call(arguments, 2);
-		if (!value) {
-			var text = errorText.replace(/%s/g, function (_) {
-				return sprintfValues.shift();
-			});
-			throw new Error(text);
-		}
-	};
-
-/***/ },
 /* 5 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	module.exports = function (k) {
-	  return function (o) {
-	    return o[k];
-	  };
-	};
-
-/***/ },
-/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module) {var m = (function app(window, undefined) {
@@ -1815,10 +1799,10 @@
 	if (typeof module === "object" && module != null && module.exports) module.exports = m;
 	else if (true) !(__WEBPACK_AMD_DEFINE_RESULT__ = function() { return m }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(20)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)(module)))
 
 /***/ },
-/* 7 */
+/* 6 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1836,7 +1820,35 @@
 	};
 
 /***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	module.exports = function (value, errorText) {
+		var sprintfValues = Array.prototype.slice.call(arguments, 2);
+		if (!value) {
+			var text = errorText.replace(/%s/g, function (_) {
+				return sprintfValues.shift();
+			});
+			throw new Error(text);
+		}
+	};
+
+/***/ },
 /* 8 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	module.exports = function (k) {
+	  return function (o) {
+	    return o[k]();
+	  };
+	};
+
+/***/ },
+/* 9 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1867,7 +1879,26 @@
 	};
 
 /***/ },
-/* 9 */
+/* 10 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	module.exports = function interleave(list, glue) {
+		if (list.length === 0) return [];
+		if (list.length === 1) return list[0];
+		var newList = [list[0]],
+		    len = list.length,
+		    i = undefined;
+		for (i = 1; i < len; i++) {
+			newList.push(glue);
+			newList.push(list[i]);
+		}
+		return newList;
+	};
+
+/***/ },
+/* 11 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1881,7 +1912,7 @@
 	};
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1899,12 +1930,12 @@
 	};
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var get = __webpack_require__(5);
+	var get = __webpack_require__(3);
 	
 	function maybeWrap(callback) {
 		return typeof callback === 'string' ? get(callback) : callback;
@@ -1990,8 +2021,8 @@
 	module.exports = sortBy;
 
 /***/ },
-/* 12 */,
-/* 13 */
+/* 14 */,
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2045,7 +2076,7 @@
 	//
 	// You can match minWidth, maxWidth, orientation ('portrait' or 'landscape').
 	//
-	var throttle = __webpack_require__(18);
+	var throttle = __webpack_require__(21);
 	var fsignal = __webpack_require__(2);
 	
 	// add the listener for the event resizes. One single listener for many possible
@@ -2125,21 +2156,21 @@
 	}
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _constants = __webpack_require__(7);
+	var _constants = __webpack_require__(6);
 	
-	var assert = __webpack_require__(4);
-	var extend = __webpack_require__(3);
-	var get = __webpack_require__(5);
-	var m = __webpack_require__(6);
-	var omap = __webpack_require__(9);
-	var ovals = __webpack_require__(10);
+	var assert = __webpack_require__(7);
+	var extend = __webpack_require__(4);
+	var get = __webpack_require__(3);
+	var m = __webpack_require__(5);
+	var omap = __webpack_require__(11);
+	var ovals = __webpack_require__(12);
 	var fsignal = __webpack_require__(2);
-	var sortby = __webpack_require__(11);
+	var sortby = __webpack_require__(13);
 	
 	var model = {};
 	
@@ -2331,12 +2362,231 @@
 	}
 
 /***/ },
-/* 15 */
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _constants = __webpack_require__(6);
+	
+	var call = __webpack_require__(8);
+	var get = __webpack_require__(3);
+	var interleave = __webpack_require__(10);
+	var m = __webpack_require__(5);
+	
+	function make(api, store, opts) {
+		var el = opts.container;
+		var t = m.trust;
+	
+		var render = function render() {
+			var ct = content();
+			console.log('render pizzas');
+			ct.children[1].children[0].map(function (li) {
+				return console.log(' - ', li.attrs.key);
+			});
+			m.render(el, ct);
+		};
+	
+		// Listen to the store change events and render the view
+		store.change.listen(render);
+	
+		var menuActive = false;
+		// Listen to the view changes
+		api.toggleMenu.listen(function () {
+			menuActive = !menuActive;render();
+		});
+	
+		// Get the content for the view
+		function content() {
+			var lc = PizzaPicker.i18n[opts.locale];
+			return {
+				tag: 'div',
+				children: [{
+					tag: 'div',
+					children: [{
+						tag: 'div',
+						children: [{
+							tag: 'a',
+							children: [lc.show_menu],
+							attrs: { onclick: api.toggleMenu }
+						}, {
+							tag: 'a',
+							children: [{
+								tag: 'span',
+								attrs: { className: 'bt-top' }
+							}, {
+								tag: 'span',
+								attrs: { className: 'bt-middle' }
+							}, {
+								tag: 'span',
+								attrs: { className: 'bt-bottom' }
+							}],
+							attrs: { onclick: api.toggleMenu, className: 'picker-bt-menu' }
+						}],
+						attrs: { className: 'picker-menu-toggle' }
+					}, {
+						tag: 'h3',
+						children: [lc.ingredients_menu]
+					}, {
+						tag: 'ul',
+						children: [store.ingredients().map(function (ing, i) {
+							return {
+								tag: 'li',
+								children: [{
+									tag: 'span',
+									children: [ing.name]
+								}, {
+									tag: 'a',
+									children: [t('&#10084;')],
+									attrs: { className: 'yummy', onclick: function onclick(e) {
+											return api.toggleYummy(ing);
+										} }
+								}, {
+									tag: 'a',
+									children: [t('&#10005;')],
+									attrs: { className: 'yuck', onclick: function onclick(e) {
+											return api.toggleYuck(ing);
+										} }
+								}],
+								attrs: { className: 'status-' + ing.status() }
+							};
+						})],
+						attrs: { className: 'picker-ingredients' }
+					}, {
+						tag: 'h3',
+						children: [lc.filters_menu]
+					}, {
+						tag: 'ul',
+						children: [store.filters().map(function (filter, i) {
+							return {
+								tag: 'li',
+								children: [{
+									tag: 'a',
+									children: [{
+										tag: 'span',
+										children: [filter.status() === _constants.status.ENABLED ? t('&#9745;') : t('&#9744;')]
+									}, ' ', filter.name, ' ', {
+										tag: 'span',
+										children: ['(', filter.hasHiddenPizzas() ? {
+											tag: 'span',
+											children: [{
+												tag: 'span',
+												children: [filter.matchingPizzas().length],
+												attrs: { className: 'filter-' + _constants.status.YUCK }
+											}, ' ', filter.matchingPizzas().filter(call('visible')).length]
+										} : filter.matchingPizzas().length, ')']
+									}],
+									attrs: { onclick: function onclick(e) {
+											return api.toggleFilter(filter);
+										} }
+								}],
+								attrs: { className: filter.status() === _constants.status.ENABLED ? 'on' : 'off' }
+							};
+						})],
+						attrs: { className: 'picker-filters' }
+					}],
+					attrs: { className: 'picker-menu' }
+				}, {
+					tag: 'ul',
+					children: [store.pizzas().reverse().map(function (p, i) {
+						return formatPizza(p, i, opts);
+					})],
+					attrs: { className: 'picker-pizzas' }
+				}],
+				attrs: { className: opts.style.get().wrapperCssClass + ' ' + (menuActive ? 'view-menu' : 'view-pizzas') }
+			};
+		}
+	}
+	
+	module.exports = { make: make };
+	
+	function formatPizza(p, index, opts) {
+		var elements = [],
+		    style = opts.style.get(),
+		    lc = PizzaPicker.i18n[opts.locale];
+		if (style.renderImages) {
+			elements.push({
+				tag: 'div',
+				children: [{
+					tag: 'img',
+					attrs: { src: 'http://fakeimg.pl/100x100/ffffff/' }
+				}],
+				attrs: { className: 'img' }
+			});
+		}
+		elements.push({
+			tag: 'ul',
+			children: [opts.sizes.map(function (size) {
+				return p.prices[size] && {
+					tag: 'li',
+					children: ['Ø ', size + opts.sizeUnit, ' : ', lc.formatPrice(p.prices[size])]
+				};
+			})],
+			attrs: { className: 'prices' }
+		});
+	
+		var pHeight = opts.style.get().pizzaRowHeightPx;
+		var pMargin = opts.style.get().pizzaRowMarginPx;
+		var visible = p.visible();
+		var rankChanged = p.rank() !== p.prevRank();
+		var rank = p.rank();
+		var top = visible ? rank * (pHeight + pMargin) : 0;
+		var transform = 'translate(0,' + top + 'px)';
+		var className = visible && p.wasVisible() ? 'filter-move' : visible ? 'filter-in' : 'filter-out';
+	
+		// <h3>{className} {transform}</h3>
+		elements.push({
+			tag: 'div',
+			children: [{
+				tag: 'h3',
+				children: [p.rank(), ' ', p.name]
+			}, {
+				tag: 'div',
+				children: [{
+					tag: 'p',
+					children: [interleave(p.ingredients.map(function (ing) {
+						return formatIngredient(ing, opts);
+					}), ', ')]
+				}],
+				attrs: { className: 'ingredients' }
+			}],
+			attrs: { className: 'infos' }
+		});
+	
+		// let colorSlice = (255 / 10)
+		// let debugColorInt =  Math.floor(colorSlice * (10 - p.id))
+		// console.log('sliece', debugColorInt)
+		// let debugColor = 'rgb(%s,%s,%s)' . replace(/%s/g, debugColorInt)
+	
+		return {
+			tag: 'li',
+			children: [elements],
+			attrs: { key: p.id, style: { transform: transform }, /* background: debugColor */className: className }
+		};
+	}
+	
+	function formatIngredient(ing, opts) {
+		if (ing.status() === _constants.status.YUMMY) {
+			return {
+				tag: 'span',
+				children: [ing.name],
+				attrs: { className: 'yummy' }
+			};
+		} else {
+			return {
+				tag: 'span',
+				children: [ing.name]
+			};
+		}
+	}
+
+/***/ },
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isObject = __webpack_require__(1),
-	    now = __webpack_require__(17),
-	    toNumber = __webpack_require__(19);
+	    now = __webpack_require__(20),
+	    toNumber = __webpack_require__(22);
 	
 	/** Used as the `TypeError` message for "Functions" methods. */
 	var FUNC_ERROR_TEXT = 'Expected a function';
@@ -2512,7 +2762,7 @@
 
 
 /***/ },
-/* 16 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {var isObject = __webpack_require__(1);
@@ -2559,7 +2809,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports) {
 
 	/**
@@ -2584,10 +2834,10 @@
 
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var debounce = __webpack_require__(15),
+	var debounce = __webpack_require__(18),
 	    isObject = __webpack_require__(1);
 	
 	/** Used as the `TypeError` message for "Functions" methods. */
@@ -2651,10 +2901,10 @@
 
 
 /***/ },
-/* 19 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isFunction = __webpack_require__(16),
+	var isFunction = __webpack_require__(19),
 	    isObject = __webpack_require__(1);
 	
 	/** Used as references for various `Number` constants. */
@@ -2716,7 +2966,7 @@
 
 
 /***/ },
-/* 20 */
+/* 23 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -2730,256 +2980,6 @@
 		return module;
 	}
 
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var _constants = __webpack_require__(7);
-	
-	var call = __webpack_require__(22);
-	var get = __webpack_require__(5);
-	var interleave = __webpack_require__(23);
-	var m = __webpack_require__(6);
-	
-	function make(api, store, opts) {
-		var el = opts.container;
-		var t = m.trust;
-	
-		var render = function render() {
-			var ct = content();
-			console.log('render pizzas');
-			ct.children[2].children[0].map(function (li) {
-				return console.log(' - ', li.attrs.key);
-			});
-			m.render(el, ct);
-		};
-	
-		// Listen to the store change events and render the view
-		store.change.listen(render);
-	
-		var menuActive = false;
-		// Listen to the view changes
-		api.toggleMenu.listen(function () {
-			menuActive = !menuActive;render();
-		});
-	
-		// Get the content for the view
-		function content() {
-			var lc = PizzaPicker.i18n[opts.locale];
-			return {
-				tag: 'div',
-				children: [{
-					tag: 'div',
-					children: [{
-						tag: 'a',
-						children: [lc.show_menu],
-						attrs: { onclick: api.toggleMenu }
-					}, {
-						tag: 'a',
-						children: [{
-							tag: 'span',
-							attrs: { className: 'bt-top' }
-						}, {
-							tag: 'span',
-							attrs: { className: 'bt-middle' }
-						}, {
-							tag: 'span',
-							attrs: { className: 'bt-bottom' }
-						}],
-						attrs: { onclick: api.toggleMenu, className: 'picker-bt-menu' }
-					}],
-					attrs: { className: 'picker-menu-toggle' }
-				}, {
-					tag: 'div',
-					children: [{
-						tag: 'h3',
-						children: [lc.ingredients_menu]
-					}, {
-						tag: 'ul',
-						children: [store.ingredients().map(function (ing, i) {
-							return {
-								tag: 'li',
-								children: [{
-									tag: 'span',
-									children: [ing.name]
-								}, {
-									tag: 'a',
-									children: [t('&#10084;')],
-									attrs: { className: 'yummy', onclick: function onclick(e) {
-											return api.toggleYummy(ing);
-										} }
-								}, {
-									tag: 'a',
-									children: [t('&#10005;')],
-									attrs: { className: 'yuck', onclick: function onclick(e) {
-											return api.toggleYuck(ing);
-										} }
-								}],
-								attrs: { className: 'status-' + ing.status() }
-							};
-						})],
-						attrs: { className: 'picker-ingredients' }
-					}, {
-						tag: 'h3',
-						children: [lc.filters_menu]
-					}, {
-						tag: 'ul',
-						children: [store.filters().map(function (filter, i) {
-							return {
-								tag: 'li',
-								children: [{
-									tag: 'a',
-									children: [{
-										tag: 'span',
-										children: [filter.status() === _constants.status.ENABLED ? t('&#9745;') : t('&#9744;')]
-									}, ' ', filter.name, ' ', {
-										tag: 'span',
-										children: ['(', filter.hasHiddenPizzas() ? {
-											tag: 'span',
-											children: [{
-												tag: 'span',
-												children: [filter.matchingPizzas().length],
-												attrs: { className: 'filter-' + _constants.status.YUCK }
-											}, ' ', filter.matchingPizzas().filter(call('visible')).length]
-										} : filter.matchingPizzas().length, ')']
-									}],
-									attrs: { onclick: function onclick(e) {
-											return api.toggleFilter(filter);
-										} }
-								}],
-								attrs: { className: filter.status() === _constants.status.ENABLED ? 'on' : 'off' }
-							};
-						})],
-						attrs: { className: 'picker-filters' }
-					}],
-					attrs: { className: 'picker-menu' }
-				}, {
-					tag: 'ul',
-					children: [store.pizzas().reverse().map(function (p, i) {
-						return formatPizza(p, i, opts);
-					})],
-					attrs: { className: 'picker-pizzas' }
-				}],
-				attrs: { className: opts.style.get().wrapperCssClass + ' ' + (menuActive ? 'view-menu' : 'view-pizzas') }
-			};
-		}
-	}
-	
-	module.exports = { make: make };
-	
-	function formatPizza(p, index, opts) {
-		var elements = [],
-		    style = opts.style.get(),
-		    lc = PizzaPicker.i18n[opts.locale];
-		if (style.renderImages) {
-			elements.push({
-				tag: 'div',
-				children: [{
-					tag: 'img',
-					attrs: { src: 'http://fakeimg.pl/100x100/ffffff/' }
-				}],
-				attrs: { className: 'img' }
-			});
-		}
-		elements.push({
-			tag: 'ul',
-			children: [opts.sizes.map(function (size) {
-				return p.prices[size] && {
-					tag: 'li',
-					children: ['Ø ', size + opts.sizeUnit, ' : ', lc.formatPrice(p.prices[size])]
-				};
-			})],
-			attrs: { className: 'prices' }
-		});
-	
-		var pHeight = opts.style.get().pizzaRowHeightPx;
-		var pMargin = opts.style.get().pizzaRowMarginPx;
-		var visible = p.visible();
-		var rankChanged = p.rank() !== p.prevRank();
-		var rank = p.rank();
-		var top = visible ? rank * (pHeight + pMargin) : 0;
-		var transform = 'translate(0,' + top + 'px)';
-		var className = visible && p.wasVisible() ? 'filter-move' : visible ? 'filter-in' : 'filter-out';
-	
-		// <h3>{className} {transform}</h3>
-		elements.push({
-			tag: 'div',
-			children: [{
-				tag: 'h3',
-				children: [p.rank(), ' ', p.name]
-			}, {
-				tag: 'div',
-				children: [{
-					tag: 'p',
-					children: [interleave(p.ingredients.map(function (ing) {
-						return formatIngredient(ing, opts);
-					}), ', ')]
-				}],
-				attrs: { className: 'ingredients' }
-			}],
-			attrs: { className: 'infos' }
-		});
-	
-		// let colorSlice = (255 / 10)
-		// let debugColorInt =  Math.floor(colorSlice * (10 - p.id))
-		// console.log('sliece', debugColorInt)
-		// let debugColor = 'rgb(%s,%s,%s)' . replace(/%s/g, debugColorInt)
-	
-		return {
-			tag: 'li',
-			children: [elements],
-			attrs: { key: p.id, style: { transform: transform }, /* background: debugColor */className: className }
-		};
-	}
-	
-	function formatIngredient(ing, opts) {
-		if (ing.status() === _constants.status.YUMMY) {
-			return {
-				tag: 'span',
-				children: [ing.name],
-				attrs: { className: 'yummy' }
-			};
-		} else {
-			return {
-				tag: 'span',
-				children: [ing.name]
-			};
-		}
-	}
-
-/***/ },
-/* 22 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	module.exports = function (k) {
-	  return function (o) {
-	    return o[k]();
-	  };
-	};
-
-/***/ },
-/* 23 */
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	module.exports = function interleave(list, glue) {
-		if (list.length === 0) return [];
-		if (list.length === 1) return list[0];
-		var newList = [list[0]],
-		    len = list.length,
-		    i = undefined;
-		for (i = 1; i < len; i++) {
-			newList.push(glue);
-			newList.push(list[i]);
-		}
-		return newList;
-	};
 
 /***/ }
 /******/ ]);
