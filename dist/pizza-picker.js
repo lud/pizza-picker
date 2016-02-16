@@ -64,7 +64,8 @@
 			'toggleYummy': fsignal(),
 			'toggleYuck': fsignal(),
 			'toggleFilter': fsignal(),
-			'windowResize': fsignal({ async: false })
+			'windowResize': fsignal({ async: false }),
+			'toggleMenu': fsignal()
 		};
 		var store = storeFactory.make(api, opts);
 		opts.style = respdata(opts.style, api.windowResize);
@@ -106,14 +107,16 @@
 			style: [{
 				minWidth: 768,
 				data: {
-					device: 'medium',
+					renderImages: true,
+					wrapperCssClass: 'pizza-picker',
 					pizzaRowHeightPx: 100,
 					pizzaRowMarginPx: 5
 				}
 			}, {
 				minWidth: 480,
 				data: {
-					device: 'small',
+					renderImages: true,
+					wrapperCssClass: 'pizza-picker picker-swapmenu',
 					pizzaRowHeightPx: 100,
 					pizzaRowMarginPx: 5
 				}
@@ -123,7 +126,8 @@
 			// no constraint to match (matches all cases)
 			{
 				data: {
-					device: 'smallest',
+					renderImages: false,
+					wrapperCssClass: 'pizza-picker picker-swapmenu',
 					pizzaRowHeightPx: 100,
 					pizzaRowMarginPx: 5
 				}
@@ -545,6 +549,7 @@
 		var DELETION = 1, INSERTION = 2, MOVE = 3;
 	
 		function handleKeysDiffer(data, existing, cached, parentElement) {
+			console.log('existing before', existing)
 			forKeys(data, function (key, i) {
 				existing[key = key.key] = existing[key] ? {
 					action: MOVE,
@@ -553,6 +558,7 @@
 					element: cached.nodes[existing[key].index] || $document.createElement("div")
 				} : {action: INSERTION, index: i};
 			});
+			console.log('existing after', existing)
 			var actions = [];
 			for (var prop in existing) actions.push(existing[prop]);
 			var changes = actions.sort(sortChanges), newCached = new Array(cached.length);
@@ -2199,12 +2205,15 @@
 				_pizzas.forEach(function (p) {
 					return p.compute(enabledFilters);
 				});
+				// Sort pizzas for score calculation
 				_pizzas.sort(sortby().desc(function (p) {
 					return p.score();
 				}).asc('defaultOrder'));
 				_pizzas.forEach(function (p) {
 					return p.rank(p.visible() ? visibleRank++ : 0);
 				});
+				// Sort pizzas by default to allow animations on rendering
+				_pizzas.sort(sortby('defaultOrder'));
 				_filters.forEach(function (f) {
 					return f.setMatchingPizzas(_pizzas);
 				});
@@ -2738,20 +2747,24 @@
 	function make(api, store, opts) {
 		var el = opts.container;
 		var t = m.trust;
-		var originalClass = el.getAttribute('class');
-		var containerClass = originalClass ? function () {
-			return originalClass + ' pizza-picker picker-' + opts.style.get().device;
-		} : function () {
-			return 'pizza-picker picker-' + opts.style.get().device;
-		};
 	
 		var render = function render() {
-			el.setAttribute('class', containerClass());
-			m.render(el, content());
+			var ct = content();
+			console.log('render pizzas');
+			ct.children[2].children[0].map(function (li) {
+				return console.log(' - ', li.attrs.key);
+			});
+			m.render(el, ct);
 		};
 	
 		// Listen to the store change events and render the view
 		store.change.listen(render);
+	
+		var menuActive = false;
+		// Listen to the view changes
+		api.toggleMenu.listen(function () {
+			menuActive = !menuActive;render();
+		});
 	
 		// Get the content for the view
 		function content() {
@@ -2759,12 +2772,26 @@
 			return {
 				tag: 'div',
 				children: [{
-					tag: 'a',
-					children: [lc.show_menu],
-					attrs: { onclick: api.toggleMenu }
-				}, {
-					tag: 'a',
-					attrs: { onclick: api.toggleMenu, className: 'picker-bt-menu' }
+					tag: 'div',
+					children: [{
+						tag: 'a',
+						children: [lc.show_menu],
+						attrs: { onclick: api.toggleMenu }
+					}, {
+						tag: 'a',
+						children: [{
+							tag: 'span',
+							attrs: { className: 'bt-top' }
+						}, {
+							tag: 'span',
+							attrs: { className: 'bt-middle' }
+						}, {
+							tag: 'span',
+							attrs: { className: 'bt-bottom' }
+						}],
+						attrs: { onclick: api.toggleMenu, className: 'picker-bt-menu' }
+					}],
+					attrs: { className: 'picker-menu-toggle' }
 				}, {
 					tag: 'div',
 					children: [{
@@ -2794,7 +2821,7 @@
 								attrs: { className: 'status-' + ing.status() }
 							};
 						})],
-						attrs: { className: 'ingredients' }
+						attrs: { className: 'picker-ingredients' }
 					}, {
 						tag: 'h3',
 						children: [lc.filters_menu]
@@ -2812,18 +2839,21 @@
 										tag: 'span',
 										children: ['(', filter.hasHiddenPizzas() ? {
 											tag: 'span',
-											children: [filter.matchingPizzas().length, ' ', filter.matchingPizzas().filter(call('visible')).length],
-											attrs: { className: 'filter-' + _constants.status.YUCK }
+											children: [{
+												tag: 'span',
+												children: [filter.matchingPizzas().length],
+												attrs: { className: 'filter-' + _constants.status.YUCK }
+											}, ' ', filter.matchingPizzas().filter(call('visible')).length]
 										} : filter.matchingPizzas().length, ')']
 									}],
 									attrs: { onclick: function onclick(e) {
 											return api.toggleFilter(filter);
 										} }
 								}],
-								attrs: { className: filter.status() === _constants.status.ENABLED ? 'active' : void 0 }
+								attrs: { className: filter.status() === _constants.status.ENABLED ? 'on' : 'off' }
 							};
 						})],
-						attrs: { className: 'filters' }
+						attrs: { className: 'picker-filters' }
 					}],
 					attrs: { className: 'picker-menu' }
 				}, {
@@ -2831,9 +2861,9 @@
 					children: [store.pizzas().reverse().map(function (p, i) {
 						return formatPizza(p, i, opts);
 					})],
-					attrs: { className: 'pizzas' }
+					attrs: { className: 'picker-pizzas' }
 				}],
-				attrs: { className: picker - opts.style.get().device }
+				attrs: { className: opts.style.get().wrapperCssClass + ' ' + (menuActive ? 'view-menu' : 'view-pizzas') }
 			};
 		}
 	}
@@ -2844,7 +2874,7 @@
 		var elements = [],
 		    style = opts.style.get(),
 		    lc = PizzaPicker.i18n[opts.locale];
-		if (style.device !== 'smallest') {
+		if (style.renderImages) {
 			elements.push({
 				tag: 'div',
 				children: [{
@@ -2864,6 +2894,17 @@
 			})],
 			attrs: { className: 'prices' }
 		});
+	
+		var pHeight = opts.style.get().pizzaRowHeightPx;
+		var pMargin = opts.style.get().pizzaRowMarginPx;
+		var visible = p.visible();
+		var rankChanged = p.rank() !== p.prevRank();
+		var rank = p.rank();
+		var top = visible ? rank * (pHeight + pMargin) : 0;
+		var transform = 'translate(0,' + top + 'px)';
+		var className = visible && p.wasVisible() ? 'filter-move' : visible ? 'filter-in' : 'filter-out';
+	
+		// <h3>{className} {transform}</h3>
 		elements.push({
 			tag: 'div',
 			children: [{
@@ -2882,18 +2923,15 @@
 			attrs: { className: 'infos' }
 		});
 	
-		var pHeight = opts.style.get().pizzaRowHeightPx;
-		var pMargin = opts.style.get().pizzaRowMarginPx;
-		var visible = p.visible();
-		var rankChanged = p.rank() !== p.prevRank();
-		var rank = p.rank();
-		var top = visible ? rank * (pHeight + pMargin) : 0;
-		var transform = 'translateY(' + top + 'px)';
+		// let colorSlice = (255 / 10)
+		// let debugColorInt =  Math.floor(colorSlice * (10 - p.id))
+		// console.log('sliece', debugColorInt)
+		// let debugColor = 'rgb(%s,%s,%s)' . replace(/%s/g, debugColorInt)
 	
 		return {
 			tag: 'li',
 			children: [elements],
-			attrs: { key: p.id, style: { transform: transform }, className: visible ? 'filter-in' : 'filter-out' }
+			attrs: { key: p.id, style: { transform: transform }, /* background: debugColor */className: className }
 		};
 	}
 	

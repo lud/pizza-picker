@@ -7,28 +7,36 @@ let m = require('mithril')
 function make(api, store, opts) {
 	let el = opts.container
 	let t = m.trust
-	let originalClass = el.getAttribute('class')
-	let containerClass = originalClass
-		? (() => originalClass + ' pizza-picker picker-' + opts.style.get().device)
-		: (() => 'pizza-picker picker-' + opts.style.get().device)
 
 	let render = function(){
-		el.setAttribute('class', containerClass())
-		m.render(el, content())
+		let ct = content()
+		console.log('render pizzas')
+		ct.children[2].children[0].map(li => console.log(' - ', li.attrs.key))
+		m.render(el, ct)
 	}
 
 	// Listen to the store change events and render the view
 	store.change.listen(render)
 
+	let menuActive = false
+	// Listen to the view changes
+	api.toggleMenu.listen(() => {menuActive = !menuActive; render()})
+
 		// Get the content for the view
 	function content() {
 		let lc = PizzaPicker.i18n[opts.locale]
-		return <div class={picker-opts.style.get().device}>
-			<a onclick={api.toggleMenu}>{lc.show_menu}</a>
-			<a onclick={api.toggleMenu} class="picker-bt-menu"></a>
+		return <div class={opts.style.get().wrapperCssClass + ' ' + (menuActive?'view-menu':'view-pizzas')}>
+			<div class="picker-menu-toggle">
+				<a onclick={api.toggleMenu}>{lc.show_menu}</a>
+				<a onclick={api.toggleMenu} class="picker-bt-menu">
+					<span class="bt-top" />
+					<span class="bt-middle" />
+					<span class="bt-bottom" />
+				</a>
+			</div>
 			<div class="picker-menu">
 				<h3>{lc.ingredients_menu}</h3>
-				<ul class="ingredients">
+				<ul class="picker-ingredients">
 					{store.ingredients().map((ing, i) =>
 						<li class={'status-' + ing.status()}>
 							<span>{ing.name}</span>
@@ -42,25 +50,29 @@ function make(api, store, opts) {
 					)}
 				</ul>
 				<h3>{lc.filters_menu}</h3>
-				<ul class="filters">
+				<ul class="picker-filters">
 					{store.filters().map((filter, i) =>
-						<li class={filter.status() === status.ENABLED ? 'active' : void 0}>
+						<li class={filter.status() === status.ENABLED ? 'on' : 'off'}>
 							<a onclick={e => api.toggleFilter(filter)}>
 								<span>{filter.status() === status.ENABLED ? t('&#9745;') : t('&#9744;')}</span>
 								{' '}
 								{filter.name}
 								{' '}
 								<span>({filter.hasHiddenPizzas()
-								? (<span class={'filter-'+status.YUCK}>
-									{filter.matchingPizzas().length} {filter.matchingPizzas().filter(call('visible')).length}
-								</span>)
+								? <span>
+										<span class={'filter-'+status.YUCK}>
+											{filter.matchingPizzas().length}
+										</span>
+										{' '}
+										{filter.matchingPizzas().filter(call('visible')).length}
+								</span>
 								: filter.matchingPizzas().length})</span>
 							</a>
 						</li>
 					)}
 				</ul>
 			</div>
-			<ul class="pizzas">
+			<ul class="picker-pizzas">
 				{store.pizzas().reverse().map((p, i) => formatPizza(p, i, opts))}
 			</ul>
 		</div>
@@ -73,7 +85,7 @@ function formatPizza(p, index, opts) {
 	let elements = [],
 	    style = opts.style.get(),
 	    lc = PizzaPicker.i18n[opts.locale]
-	if (style.device !== 'smallest') {
+	if (style.renderImages) {
 		elements.push(
 			<div class="img">
 				<img src="http://fakeimg.pl/100x100/ffffff/" />
@@ -86,14 +98,6 @@ function formatPizza(p, index, opts) {
 			}
 		</ul>
 	)
-	elements.push(
-		<div class="infos">
-			<h3>{p.rank()} {p.name}</h3>
-			<div class="ingredients">
-				<p>{interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')}</p>
-			</div>
-		</div>
-	)
 
 	let pHeight = opts.style.get().pizzaRowHeightPx
 	let pMargin = opts.style.get().pizzaRowMarginPx
@@ -103,9 +107,25 @@ function formatPizza(p, index, opts) {
 	let top = visible
 		? rank * (pHeight + pMargin)
 		: 0
-	let transform = 'translateY(' + top + 'px)'
+	let transform = 'translate(0,' + top + 'px)'
+	let className = (visible && p.wasVisible()) ? 'filter-move' : visible ? 'filter-in' : 'filter-out'
 
-	return <li key={p.id}  style={{transform: transform}} className={visible ? 'filter-in' : 'filter-out'}>
+			// <h3>{className} {transform}</h3>
+	elements.push(
+		<div class="infos">
+			<h3>{p.rank()} {p.name}</h3>
+			<div class="ingredients">
+				<p>{interleave(p.ingredients.map(ing => formatIngredient(ing, opts)), ', ')}</p>
+			</div>
+		</div>
+	)
+
+	// let colorSlice = (255 / 10)
+	// let debugColorInt =  Math.floor(colorSlice * (10 - p.id))
+	// console.log('sliece', debugColorInt)
+	// let debugColor = 'rgb(%s,%s,%s)' . replace(/%s/g, debugColorInt)
+
+	return <li key={p.id}  style={{transform: transform, /* background: debugColor */}} className={className}>
 		{elements}
 	</li>
 }

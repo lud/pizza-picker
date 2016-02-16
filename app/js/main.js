@@ -16,7 +16,8 @@ PizzaPicker.create = function(_opts) {
 		'toggleYummy': fsignal(),
 		'toggleYuck': fsignal(),
 		'toggleFilter': fsignal(),
-		'windowResize': fsignal({async: false})
+		'windowResize': fsignal({async: false}),
+		'toggleMenu': fsignal(),
 	}
 	let store = storeFactory.make(api, opts)
 	opts.style = respdata(opts.style, api.windowResize)
@@ -59,7 +60,8 @@ function setDefaultOpts (opts) {
 			{
 				minWidth: 768,
 				data: {
-					device: 'medium',
+					renderImages: true,
+					wrapperCssClass: 'pizza-picker',
 					pizzaRowHeightPx: 100,
 					pizzaRowMarginPx: 5,
 				}
@@ -67,7 +69,8 @@ function setDefaultOpts (opts) {
 			{
 				minWidth: 480,
 				data: {
-					device: 'small',
+					renderImages: true,
+					wrapperCssClass: 'pizza-picker picker-swapmenu',
 					pizzaRowHeightPx: 100,
 					pizzaRowMarginPx: 5,
 				}
@@ -77,7 +80,8 @@ function setDefaultOpts (opts) {
 			// no constraint to match (matches all cases)
 			{
 				data: {
-					device: 'smallest',
+					renderImages: false,
+					wrapperCssClass: 'pizza-picker picker-swapmenu',
 					pizzaRowHeightPx: 100,
 					pizzaRowMarginPx: 5,
 				}

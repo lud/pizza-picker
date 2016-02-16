@@ -63,8 +63,11 @@ model.make = function(api, opts) {
 			let visibleRank = 0
 			let enabledFilters = filters.filter(f => f.status() === status.ENABLED)
 			pizzas.forEach(p => p.compute(enabledFilters))
+			// Sort pizzas for score calculation
 			pizzas.sort(sortby().desc(p => p.score()).asc('defaultOrder'))
 			pizzas.forEach(p => p.rank(p.visible() ? visibleRank++ : 0))
+			// Sort pizzas by default to allow animations on rendering
+			pizzas.sort(sortby('defaultOrder'))
 			filters.forEach(f => f.setMatchingPizzas(pizzas))
 			store.trigger()
 		}
