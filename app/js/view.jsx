@@ -10,9 +10,18 @@ function make(api, store, opts) {
 
 	let render = function(){
 		let ct = content()
-		console.log('render pizzas')
-		ct.children[1].children[0].map(li => console.log(' - ', li.attrs.key))
 		m.render(el, ct)
+	}
+
+	// Execute a first render
+	render()
+
+	// Force a second render in order to activate the first transition in
+	// firefox. Firefox should activate the first transition because opacity and
+	// transform defaults are set on <li> elements, but it doesn't work.
+	// We do it only in Firefox because in chrome this makes the bug appear !
+	if (window.navigator && navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+		render()
 	}
 
 	// Listen to the store change events and render the view

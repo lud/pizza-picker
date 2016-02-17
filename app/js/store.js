@@ -59,7 +59,6 @@ model.make = function(api, opts) {
 			store.computeAll()
 		},
 		computeAll: function () {
-			console.log('compute !')
 			let visibleRank = 0
 			let enabledFilters = filters.filter(f => f.status() === status.ENABLED)
 			pizzas.forEach(p => p.compute(enabledFilters))
@@ -145,8 +144,6 @@ let Filter = function(data) {
 		return filter.status(filter.status() === status.DISABLED ? status.ENABLED : status.DISABLED)
 	}
 	filter.accept = function(pizza) {
-		let passes = filter.fun(pizza)
-		return passes
 		return filter.fun(pizza)
 	}
 	filter.reject = function(pizza) {

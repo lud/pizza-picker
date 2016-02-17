@@ -20,9 +20,9 @@ PizzaPicker.create = function(_opts) {
 		'toggleMenu': fsignal(),
 	}
 	let store = storeFactory.make(api, opts)
+	store.init()
 	opts.style = respdata(opts.style, api.windowResize)
 	viewFactory.make(api, store, opts)
-	store.init()
 	return api
 }
 

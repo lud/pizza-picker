@@ -211,25 +211,24 @@ ul.picker-pizzas > li {
 	box-shadow:1px 1px 10px #aaa;
 	height: 100px;
 	z-index: 101;
+	transform: translate(0px, 0px);
+	opacity: 1;
 }
-ul.picker-pizzas > li.filter-move {
 
-
+ul.picker-pizzas li.filter-move {
 	transition: transform .4s ease-in-out;
 }
-ul.picker-pizzas > li.filter-in {
-	opacity: 1;
-                                        /* delay for phase-1 *//* delay for phase-1 + pahse-2 */
-	transition: transform .2s ease-in-out .2s, opacity .2s linear .4s;
-}
-ul.picker-pizzas > li.filter-out {
-	opacity: 0;
-	/*height: 0px;*/
-	z-index: 100;
 
-	                                                         /* delay for phase-1 */
-	transition:  opacity .2s linear, transform .2s ease-in-out .2s;
+ul.picker-pizzas li.filter-in {
+	transition: transform .001s ease-in-out .2s, opacity .2s linear .4s;
 }
+
+ul.picker-pizzas li.filter-out {
+	opacity: 0;
+	z-index: 100;
+	transition: opacity .2s linear, transform .2s ease-in-out .2s;
+}
+
 ul.picker-pizzas > li > * {
 	vertical-align:top;
 	padding:0;
@@ -334,6 +333,5 @@ body {
 		// Finally, render the picker in a div #p1
 		container: document.getElementById('picker-here')
 	})
-	console.log('picker',picker)
 </script>
 

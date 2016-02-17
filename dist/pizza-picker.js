@@ -68,9 +68,9 @@
 			'toggleMenu': fsignal()
 		};
 		var store = storeFactory.make(api, opts);
+		store.init();
 		opts.style = respdata(opts.style, api.windowResize);
 		viewFactory.make(api, store, opts);
-		store.init();
 		return api;
 	};
 	
@@ -533,7 +533,6 @@
 		var DELETION = 1, INSERTION = 2, MOVE = 3;
 	
 		function handleKeysDiffer(data, existing, cached, parentElement) {
-			console.log('existing before', existing)
 			forKeys(data, function (key, i) {
 				existing[key = key.key] = existing[key] ? {
 					action: MOVE,
@@ -542,7 +541,6 @@
 					element: cached.nodes[existing[key].index] || $document.createElement("div")
 				} : {action: INSERTION, index: i};
 			});
-			console.log('existing after', existing)
 			var actions = [];
 			for (var prop in existing) actions.push(existing[prop]);
 			var changes = actions.sort(sortChanges), newCached = new Array(cached.length);
@@ -1862,7 +1860,7 @@
 		price = Math.abs(+price || 0).toFixed(decimals);
 		var intPart = parseInt(price),
 		    intStr = String(intPart),
-		   
+	
 		// first group length : 12 000 000 : fgl = 2 (only if price > 999)
 		fgl = intStr.length > 3 ? intStr.length % 3 : 0,
 		    priceStr = sign + (fgl ? intStr.substr(0, fgl) + thousandSep : '') + intStr.substr(fgl).replace(/(\d{3})(?=\d)/g, '$1' + thousandSep) + (decimals ? decimalSep + Math.abs(price - intPart).toFixed(decimals).slice(2) : '');
@@ -2228,7 +2226,6 @@
 				store.computeAll();
 			},
 			computeAll: function computeAll() {
-				console.log('compute !');
 				var visibleRank = 0;
 				var enabledFilters = _filters.filter(function (f) {
 					return f.status() === _constants.status.ENABLED;
@@ -2328,8 +2325,6 @@
 			return filter.status(filter.status() === _constants.status.DISABLED ? _constants.status.ENABLED : _constants.status.DISABLED);
 		};
 		filter.accept = function (pizza) {
-			var passes = filter.fun(pizza);
-			return passes;
 			return filter.fun(pizza);
 		};
 		filter.reject = function (pizza) {
@@ -2380,12 +2375,19 @@
 	
 		var render = function render() {
 			var ct = content();
-			console.log('render pizzas');
-			ct.children[1].children[0].map(function (li) {
-				return console.log(' - ', li.attrs.key);
-			});
 			m.render(el, ct);
 		};
+	
+		// Execute a first render
+		render();
+	
+		// Force a second render in order to activate the first transition in
+		// firefox. Firefox should activate the first transition because opacity and
+		// transform defaults are set on <li> elements, but it doesn't work.
+		// We do it only in Firefox because in chrome this makes the bug appear !
+		if (window.navigator && navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+			render();
+		}
 	
 		// Listen to the store change events and render the view
 		store.change.listen(render);
@@ -2605,7 +2607,7 @@
 	 * to the debounced function return the result of the last `func` invocation.
 	 *
 	 * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
-	 * on the trailing edge of the timeout only if the the debounced function is
+	 * on the trailing edge of the timeout only if the debounced function is
 	 * invoked more than once during the `wait` timeout.
 	 *
 	 * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
@@ -2626,21 +2628,21 @@
 	 * @returns {Function} Returns the new debounced function.
 	 * @example
 	 *
-	 * // avoid costly calculations while the window size is in flux
+	 * // Avoid costly calculations while the window size is in flux.
 	 * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
 	 *
-	 * // invoke `sendMail` when clicked, debouncing subsequent calls
+	 * // Invoke `sendMail` when clicked, debouncing subsequent calls.
 	 * jQuery(element).on('click', _.debounce(sendMail, 300, {
 	 *   'leading': true,
 	 *   'trailing': false
 	 * }));
 	 *
-	 * // ensure `batchLog` is invoked once after 1 second of debounced calls
+	 * // Ensure `batchLog` is invoked once after 1 second of debounced calls.
 	 * var debounced = _.debounce(batchLog, 250, { 'maxWait': 1000 });
 	 * var source = new EventSource('/stream');
 	 * jQuery(source).on('message', debounced);
 	 *
-	 * // cancel a trailing debounced invocation
+	 * // Cancel the trailing debounced invocation.
 	 * jQuery(window).on('popstate', debounced.cancel);
 	 */
 	function debounce(func, wait, options) {
@@ -2721,11 +2723,13 @@
 	    if (maxWait === false) {
 	      var leadingCall = leading && !timeoutId;
 	    } else {
-	      if (!maxTimeoutId && !leading) {
+	      if (!lastCalled && !maxTimeoutId && !leading) {
 	        lastCalled = stamp;
 	      }
-	      var remaining = maxWait - (stamp - lastCalled),
-	          isCalled = remaining <= 0 || remaining > maxWait;
+	      var remaining = maxWait - (stamp - lastCalled);
+	
+	      var isCalled = (remaining <= 0 || remaining > maxWait) &&
+	        (leading || maxTimeoutId);
 	
 	      if (isCalled) {
 	        if (maxTimeoutId) {
@@ -2765,14 +2769,14 @@
 /* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var isObject = __webpack_require__(1);
+	var isObject = __webpack_require__(1);
 	
 	/** `Object#toString` result references. */
 	var funcTag = '[object Function]',
 	    genTag = '[object GeneratorFunction]';
 	
 	/** Used for built-in method references. */
-	var objectProto = global.Object.prototype;
+	var objectProto = Object.prototype;
 	
 	/**
 	 * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
@@ -2805,8 +2809,7 @@
 	}
 	
 	module.exports = isFunction;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
 
 /***/ },
 /* 20 */
@@ -2818,7 +2821,7 @@
 	 *
 	 * @static
 	 * @memberOf _
-	 * @type Function
+	 * @type {Function}
 	 * @category Date
 	 * @returns {number} Returns the timestamp.
 	 * @example
@@ -2854,7 +2857,7 @@
 	 * result of the last `func` invocation.
 	 *
 	 * **Note:** If `leading` and `trailing` options are `true`, `func` is invoked
-	 * on the trailing edge of the timeout only if the the throttled function is
+	 * on the trailing edge of the timeout only if the throttled function is
 	 * invoked more than once during the `wait` timeout.
 	 *
 	 * See [David Corbacho's article](http://drupalmotion.com/article/debounce-and-throttle-visual-explanation)
@@ -2873,14 +2876,14 @@
 	 * @returns {Function} Returns the new throttled function.
 	 * @example
 	 *
-	 * // avoid excessively updating the position while scrolling
+	 * // Avoid excessively updating the position while scrolling.
 	 * jQuery(window).on('scroll', _.throttle(updatePosition, 100));
 	 *
-	 * // invoke `renewToken` when the click event is fired, but not more than once every 5 minutes
+	 * // Invoke `renewToken` when the click event is fired, but not more than once every 5 minutes.
 	 * var throttled = _.throttle(renewToken, 300000, { 'trailing': false });
 	 * jQuery(element).on('click', throttled);
 	 *
-	 * // cancel a trailing throttled invocation
+	 * // Cancel the trailing throttled invocation.
 	 * jQuery(window).on('popstate', throttled.cancel);
 	 */
 	function throttle(func, wait, options) {
@@ -2894,7 +2897,11 @@
 	    leading = 'leading' in options ? !!options.leading : leading;
 	    trailing = 'trailing' in options ? !!options.trailing : trailing;
 	  }
-	  return debounce(func, wait, { 'leading': leading, 'maxWait': wait, 'trailing': trailing });
+	  return debounce(func, wait, {
+	    'leading': leading,
+	    'maxWait': wait,
+	    'trailing': trailing
+	  });
 	}
 	
 	module.exports = throttle;
@@ -2922,7 +2929,7 @@
 	/** Used to detect octal string values. */
 	var reIsOctal = /^0o[0-7]+$/i;
 	
-	/** Built-in method references without a dependency on `global`. */
+	/** Built-in method references without a dependency on `root`. */
 	var freeParseInt = parseInt;
 	
 	/**
