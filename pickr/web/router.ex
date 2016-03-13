@@ -17,6 +17,7 @@ defmodule Pickr.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index
+    resources "/mealsets", MealsetController
   end
 
   # Other scopes may use custom stacks.

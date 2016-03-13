@@ -33,10 +33,6 @@ config :logger, :console, format: "[$level] $message\n"
 config :phoenix, :stacktrace_depth, 20
 
 # Configure your database
-config :pickr, Pickr.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "pickr_dev",
-  hostname: "localhost",
-  pool_size: 10
+# see secret
+
+import_config "dev.secret.exs"
