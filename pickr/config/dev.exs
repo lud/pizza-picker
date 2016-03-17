@@ -32,7 +32,26 @@ config :logger, :console, format: "[$level] $message\n"
 # and calculating stacktraces is usually expensive.
 config :phoenix, :stacktrace_depth, 20
 
+config :guardian, Guardian,
+  issuer: "Pickr",
+  ttl: { 30, :days },
+  serializer: Pickr.GuardianSerializer
+
 # Configure your database
 # see secret
 
+
 import_config "dev.secret.exs"
+
+# # Sample secret
+#
+# config :pickr, Pickr.Repo,
+#   adapter: Ecto.Adapters.Postgres,
+#   username: "pickr_dev",
+#   password: "pickr_dev",
+#   database: "pickr_dev",
+#   pool_size: 5
+
+
+# config :guardian, Guardian,
+#   secret_key: "some secret key"
