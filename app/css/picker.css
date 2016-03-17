@@ -235,7 +235,7 @@ ul.picker-pizzas li.filter-move {
 }
 
 ul.picker-pizzas li.filter-in {
-	transition: transform .001s ease-in-out .2s, opacity .2s linear .4s;
+	transition: transform .001s ease-in-out .2s, opacity .2s linear .3s;
 }
 
 ul.picker-pizzas li.filter-out {
