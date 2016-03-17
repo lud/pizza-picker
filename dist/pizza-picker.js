@@ -52,6 +52,7 @@
 	var storeFactory = __webpack_require__(16);
 	var viewFactory = __webpack_require__(17);
 	var respdata = __webpack_require__(15);
+	__webpack_require__(27);
 	
 	// app
 	var PizzaPicker = { i18n: {} };
@@ -2987,6 +2988,356 @@
 		return module;
 	}
 
+
+/***/ },
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(25)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, "\r\n.pizza-picker, .pizza-picker * {\r\n\tmargin:0;\r\n\tpadding:0;\r\n\tbox-sizing: border-box;\r\n\tfont-family: sans-serif;\r\n}\r\n.pizza-picker {\r\n\tdisplay:block;\r\n\tposition:relative;\r\n\tfont-size:12px;\r\n\twidth: 100%;\r\n\t-webkit-transform: translateZ(0);\r\n\t-moz-transform: translateZ(0);\r\n\t-ms-transform: translateZ(0);\r\n\t-o-transform: translateZ(0);\r\n\ttransform: translateZ(0);\r\n}\r\n.pizza-picker ul, .pizza-picker li {\r\n\tlist-style: none outside none;\r\n}\r\n.pizza-picker a {\r\n\tcursor: pointer;\r\n}\r\n\r\n/** variable @todo menuToggleHeight is the height always-visible of the menu,\r\nshowing the toggle button **/\r\n/* @menuToggleHeight = 35px */\r\n\r\n.pizza-picker .picker-menu {\r\n\tposition: relative; /* not fixed because we're embedded in websites */\r\n\ttransition: height .3s linear;\r\n\tz-index: 102;\r\n\tbackground: #fff;\r\n\t/*position: absolute;*/\r\n\ttop:0;\r\n\twidth: 100%;\r\n    -webkit-transition: max-height .4s ease-out;\r\n    transition: max-height .4s ease-out;\r\n    overflow: hidden;\r\n    background:#313131;\r\n    color: #efefef;\r\n    padding:5px;\r\n}\r\n\r\n/* Some responsiveness is handled with js. The .picker-wrapmenu class is added\r\n * below 768px. In this case, the menu should cover the pizzas list.\r\n*/\r\n\r\n.pizza-picker.picker-swapmenu.view-pizzas .picker-menu {\r\n\tmax-height: 40px; /* @menuToggleHeight + padding 5*/\r\n}\r\n.pizza-picker.picker-swapmenu.view-menu .picker-menu {\r\n\tmax-height: 100vh;\r\n}\r\n\r\n.pizza-picker .picker-menu-toggle {\r\n\ttext-align: right;\r\n\theight: 35px; /* @menuToggleHeight */\r\n}\r\n\r\n.pizza-picker .picker-menu-toggle > a {\r\n\tdisplay: inline-block;\r\n\tvertical-align: middle;\r\n\tpadding:0 0 0 5px;\r\n\ttext-align: right;\r\n\theight: 30px;  /* @menuToggleHeight  - 5px*/\r\n\tline-height: 30px; /* @menuToggleHeight  - 5px*/\r\n}\r\n\r\n/** hamburger icon **/\r\n\r\n.pizza-picker .picker-bt-menu {\r\n\tposition: relative;\r\n\twidth: 30px;\r\n\tpadding:0 5px;\r\n}\r\n\r\n.pizza-picker .picker-bt-menu span {\r\n\tposition: absolute;\r\n\tbackground-color: #666;\r\n\tclear: both;\r\n\tdisplay: block;\r\n\theight: 3px;\r\n\tmargin: 0 auto 3px;\r\n\tleft: 7px;\r\n\toverflow: hidden;\r\n\ttext-indent: -9999px;\r\n\twidth: 20px;\r\n\t/* reverse transform */\r\n\ttransition: top .2s ease .1s, opacity .001s linear .3s, transform .2s ease .3s;\r\n\ttransition: transform .2s ease .1s, opacity .001s linear .3s, top .2s ease .3s;\r\n}\r\n\r\n.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu span {\r\n\ttransition: top .2s ease .1s, opacity .001s linear .3s, transform .2s ease .3s;\r\n}\r\n\r\n.pizza-picker .picker-bt-menu .bt-top {\r\n\ttop: 7px;\r\n}\r\n.pizza-picker .picker-bt-menu .bt-middle {\r\n\ttop: 13px;\r\n}\r\n.pizza-picker .picker-bt-menu .bt-bottom {\r\n\ttop: 19px;\r\n}\r\n\r\n/** hamburger crossed icon **/\r\n\r\n.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-top {\r\n\ttransform: rotate(45deg);\r\n\ttop: 13px; /* 7px + 6 */\r\n}\r\n.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-middle {\r\n\topacity: 0;\r\n}\r\n.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-bottom {\r\n\ttransform: rotate(-45deg);\r\n\ttop: 13px; /* 19 - 6 */\r\n}\r\n\r\n@media only screen and (min-width: 768px) {\r\n\t.pizza-picker .picker-menu-toggle  {\r\n\t\tdisplay:none;\r\n\t}\r\n\t.pizza-picker .picker-menu {\r\n\t\tfloat: left;\r\n\t\tmargin-top:5px;\r\n\t\twidth:300px;\r\n\t\tborder-radius: 2px;\r\n\t}\r\n\t.pizza-picker .picker-pizzas {\r\n\t\tmargin-left: 310px;\r\n\t}\r\n}\r\n\r\nul.picker-ingredients li {\r\n\twidth:100%;\r\n\tdisplay:flex;\r\n\theight:26px;\r\n\tline-height:26px;\r\n\tmargin: 2px 0;\r\n}\r\nul.picker-ingredients li + li {\r\n\tborder-top: 1px dashed #ccc;\r\n}\r\nul.picker-ingredients li > * {\r\n\tvertical-align: middle;\r\n}\r\nul.picker-ingredients li > span {\r\n\tflex:1;\r\n}\r\nul.picker-ingredients li a {\r\n\ttext-align:center;\r\n\tmargin: 3px 5px;\r\n\tmargin:3px;\r\n\tline-height:20px;\r\n\tborder:1px solid #888;\r\n\tcolor:#888;\r\n\theight:20px;\r\n\twidth:20px;\r\n\tdisplay:inline-block;\r\n\tborder-radius:10px;\r\n\t-moz-border-radius:10px;\r\n\t-moz-user-select: none;\r\n\t-webkit-user-select: none;\r\n\t-ms-user-select:none;\r\n\tuser-select:none;\r\n\t-o-user-select:none;\r\n}\r\n\r\nul.picker-ingredients li.status-yummy a.yummy {\r\n\tbackground:pink;\r\n\tcolor:white;\r\n}\r\nul.picker-ingredients li.status-yuck a.yuck {\r\n\tcolor: red;\r\n}\r\nul.picker-ingredients li.status-yuck span, .filter-yuck {\r\n\tcolor: red;\r\n\ttext-decoration: line-through;\r\n}\r\n\r\nul.picker-filters li {\r\n\twidth:100%;\r\n\tdisplay:flex;\r\n\theight:26px;\r\n\tline-height:26px;\r\n\tmargin:2px 0;\r\n}\r\nul.picker-filters li + li {\r\n\tborder-top: 1px dashed #ccc;\r\n}\r\nul.picker-filters .on a {\r\n\tcolor:green;\r\n}\r\n\r\n\r\n\r\nul.picker-pizzas {\r\n\t/* @menuToggleHeight + menu padding 5 + space between */\r\n\t/*padding-top: 45px;*/\r\n\tpadding-top: 5px;\r\n\tposition:relative;\r\n}\r\n/**\r\n * <li/> animation\r\n *\r\n * 3 phases :\r\n *\r\n * item          |  phase-1   |  phase-2      |  phase-3\r\n * --------------+------------+---------------+-----------\r\n * filter-in     |            |  translate Y  |  fade-in\r\n * filter-out    |  fade-out  |  translate Y  |\r\n * filter-move   |        ranslate Y          |\r\n *\r\n **/\r\nul.picker-pizzas > li {\r\n\tbackground:#fff;\r\n\tline-height: 2em;\r\n\toverflow:hidden;\r\n\tposition: absolute;\r\n\tbox-shadow:1px 1px 10px #aaa;\r\n\theight: 100px;\r\n\tz-index: 101;\r\n\ttransform: translate(0px, 0px);\r\n\topacity: 1;\r\n\twidth:100%;\r\n\tborder-radius: 2px;\r\n}\r\n\r\nul.picker-pizzas li.filter-move {\r\n\ttransition: transform .4s ease-in-out;\r\n}\r\n\r\nul.picker-pizzas li.filter-in {\r\n\ttransition: transform .001s ease-in-out .2s, opacity .2s linear .4s;\r\n}\r\n\r\nul.picker-pizzas li.filter-out {\r\n\topacity: 0;\r\n\tz-index: 100;\r\n\ttransition: opacity .2s linear, transform .2s ease-in-out .2s;\r\n}\r\n\r\nul.picker-pizzas > li > * {\r\n\tvertical-align:top;\r\n\tpadding:0;\r\n\tmargin:0;\r\n\toverflow: hidden;\r\n\tmargin:0 5px;\r\n\theight: 100px;\r\n}\r\nul.picker-pizzas > li div.img {\r\n\twidth: 100px;\r\n\tfloat:left;\r\n}\r\nul.picker-pizzas > li div.infos {\r\n\tdisplay:block;\r\n}\r\nul.picker-pizzas > li ul.prices {\r\n\tfloat:right;\r\n\twidth: 100px;\r\n\tpadding:0 5px;\r\n\theight: 90px;\r\n\tmargin:5px;\r\n\tborder-left:1px dashed #aaa;\r\n}\r\nul.picker-pizzas h3 {\r\n\theight:40px;\r\n\tfont-size:16px;\r\n\tline-height:40px;\r\n}\r\nul.picker-pizzas div.ingredients p {\r\n\theight:60px;\r\n\tline-height: 30px;\r\n\tvertical-align: middle;\r\n\tdisplay: table-cell;\r\n}\r\n/*\r\nul.picker-pizzas > li .ingredients .yummy {\r\n\ttext-decoration: underline;\r\n\tcolor: pink;\r\n}\r\nbody {\r\n\tbackground: #313131;\r\n}\r\n*/\r\n", ""]);
+	
+	// exports
+
+
+/***/ },
+/* 25 */
+/***/ function(module, exports) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	// css base code, injected by the css-loader
+	module.exports = function() {
+		var list = [];
+	
+		// return the list of modules as css string
+		list.toString = function toString() {
+			var result = [];
+			for(var i = 0; i < this.length; i++) {
+				var item = this[i];
+				if(item[2]) {
+					result.push("@media " + item[2] + "{" + item[1] + "}");
+				} else {
+					result.push(item[1]);
+				}
+			}
+			return result.join("");
+		};
+	
+		// import a list of modules into the list
+		list.i = function(modules, mediaQuery) {
+			if(typeof modules === "string")
+				modules = [[null, modules, ""]];
+			var alreadyImportedModules = {};
+			for(var i = 0; i < this.length; i++) {
+				var id = this[i][0];
+				if(typeof id === "number")
+					alreadyImportedModules[id] = true;
+			}
+			for(i = 0; i < modules.length; i++) {
+				var item = modules[i];
+				// skip already imported module
+				// this implementation is not 100% perfect for weird media query combinations
+				//  when a module is imported multiple times with different media queries.
+				//  I hope this will never occur (Hey this way we have smaller bundles)
+				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+					if(mediaQuery && !item[2]) {
+						item[2] = mediaQuery;
+					} else if(mediaQuery) {
+						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+					}
+					list.push(item);
+				}
+			}
+		};
+		return list;
+	};
+
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	var stylesInDom = {},
+		memoize = function(fn) {
+			var memo;
+			return function () {
+				if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+				return memo;
+			};
+		},
+		isOldIE = memoize(function() {
+			return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
+		}),
+		getHeadElement = memoize(function () {
+			return document.head || document.getElementsByTagName("head")[0];
+		}),
+		singletonElement = null,
+		singletonCounter = 0,
+		styleElementsInsertedAtTop = [];
+	
+	module.exports = function(list, options) {
+		if(false) {
+			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+		}
+	
+		options = options || {};
+		// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+		// tags it will allow on a page
+		if (typeof options.singleton === "undefined") options.singleton = isOldIE();
+	
+		// By default, add <style> tags to the bottom of <head>.
+		if (typeof options.insertAt === "undefined") options.insertAt = "bottom";
+	
+		var styles = listToStyles(list);
+		addStylesToDom(styles, options);
+	
+		return function update(newList) {
+			var mayRemove = [];
+			for(var i = 0; i < styles.length; i++) {
+				var item = styles[i];
+				var domStyle = stylesInDom[item.id];
+				domStyle.refs--;
+				mayRemove.push(domStyle);
+			}
+			if(newList) {
+				var newStyles = listToStyles(newList);
+				addStylesToDom(newStyles, options);
+			}
+			for(var i = 0; i < mayRemove.length; i++) {
+				var domStyle = mayRemove[i];
+				if(domStyle.refs === 0) {
+					for(var j = 0; j < domStyle.parts.length; j++)
+						domStyle.parts[j]();
+					delete stylesInDom[domStyle.id];
+				}
+			}
+		};
+	}
+	
+	function addStylesToDom(styles, options) {
+		for(var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+			if(domStyle) {
+				domStyle.refs++;
+				for(var j = 0; j < domStyle.parts.length; j++) {
+					domStyle.parts[j](item.parts[j]);
+				}
+				for(; j < item.parts.length; j++) {
+					domStyle.parts.push(addStyle(item.parts[j], options));
+				}
+			} else {
+				var parts = [];
+				for(var j = 0; j < item.parts.length; j++) {
+					parts.push(addStyle(item.parts[j], options));
+				}
+				stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+			}
+		}
+	}
+	
+	function listToStyles(list) {
+		var styles = [];
+		var newStyles = {};
+		for(var i = 0; i < list.length; i++) {
+			var item = list[i];
+			var id = item[0];
+			var css = item[1];
+			var media = item[2];
+			var sourceMap = item[3];
+			var part = {css: css, media: media, sourceMap: sourceMap};
+			if(!newStyles[id])
+				styles.push(newStyles[id] = {id: id, parts: [part]});
+			else
+				newStyles[id].parts.push(part);
+		}
+		return styles;
+	}
+	
+	function insertStyleElement(options, styleElement) {
+		var head = getHeadElement();
+		var lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
+		if (options.insertAt === "top") {
+			if(!lastStyleElementInsertedAtTop) {
+				head.insertBefore(styleElement, head.firstChild);
+			} else if(lastStyleElementInsertedAtTop.nextSibling) {
+				head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling);
+			} else {
+				head.appendChild(styleElement);
+			}
+			styleElementsInsertedAtTop.push(styleElement);
+		} else if (options.insertAt === "bottom") {
+			head.appendChild(styleElement);
+		} else {
+			throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+		}
+	}
+	
+	function removeStyleElement(styleElement) {
+		styleElement.parentNode.removeChild(styleElement);
+		var idx = styleElementsInsertedAtTop.indexOf(styleElement);
+		if(idx >= 0) {
+			styleElementsInsertedAtTop.splice(idx, 1);
+		}
+	}
+	
+	function createStyleElement(options) {
+		var styleElement = document.createElement("style");
+		styleElement.type = "text/css";
+		insertStyleElement(options, styleElement);
+		return styleElement;
+	}
+	
+	function createLinkElement(options) {
+		var linkElement = document.createElement("link");
+		linkElement.rel = "stylesheet";
+		insertStyleElement(options, linkElement);
+		return linkElement;
+	}
+	
+	function addStyle(obj, options) {
+		var styleElement, update, remove;
+	
+		if (options.singleton) {
+			var styleIndex = singletonCounter++;
+			styleElement = singletonElement || (singletonElement = createStyleElement(options));
+			update = applyToSingletonTag.bind(null, styleElement, styleIndex, false);
+			remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true);
+		} else if(obj.sourceMap &&
+			typeof URL === "function" &&
+			typeof URL.createObjectURL === "function" &&
+			typeof URL.revokeObjectURL === "function" &&
+			typeof Blob === "function" &&
+			typeof btoa === "function") {
+			styleElement = createLinkElement(options);
+			update = updateLink.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+				if(styleElement.href)
+					URL.revokeObjectURL(styleElement.href);
+			};
+		} else {
+			styleElement = createStyleElement(options);
+			update = applyToTag.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+			};
+		}
+	
+		update(obj);
+	
+		return function updateStyle(newObj) {
+			if(newObj) {
+				if(newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap)
+					return;
+				update(obj = newObj);
+			} else {
+				remove();
+			}
+		};
+	}
+	
+	var replaceText = (function () {
+		var textStore = [];
+	
+		return function (index, replacement) {
+			textStore[index] = replacement;
+			return textStore.filter(Boolean).join('\n');
+		};
+	})();
+	
+	function applyToSingletonTag(styleElement, index, remove, obj) {
+		var css = remove ? "" : obj.css;
+	
+		if (styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = replaceText(index, css);
+		} else {
+			var cssNode = document.createTextNode(css);
+			var childNodes = styleElement.childNodes;
+			if (childNodes[index]) styleElement.removeChild(childNodes[index]);
+			if (childNodes.length) {
+				styleElement.insertBefore(cssNode, childNodes[index]);
+			} else {
+				styleElement.appendChild(cssNode);
+			}
+		}
+	}
+	
+	function applyToTag(styleElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+		var sourceMap = obj.sourceMap;
+	
+		if(media) {
+			styleElement.setAttribute("media", media)
+		}
+	
+		if(styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = css;
+		} else {
+			while(styleElement.firstChild) {
+				styleElement.removeChild(styleElement.firstChild);
+			}
+			styleElement.appendChild(document.createTextNode(css));
+		}
+	}
+	
+	function updateLink(linkElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+		var sourceMap = obj.sourceMap;
+	
+		if(sourceMap) {
+			// http://stackoverflow.com/a/26603875
+			css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+		}
+	
+		var blob = new Blob([css], { type: "text/css" });
+	
+		var oldSrc = linkElement.href;
+	
+		linkElement.href = URL.createObjectURL(blob);
+	
+		if(oldSrc)
+			URL.revokeObjectURL(oldSrc);
+	}
+
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(24);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(26)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../node_modules/css-loader/index.js!./picker.css", function() {
+				var newContent = require("!!./../../node_modules/css-loader/index.js!./picker.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
 
 /***/ }
 /******/ ]);

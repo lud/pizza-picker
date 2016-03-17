@@ -17,7 +17,7 @@ function appfile(file) {
 
 module.exports = {
     entry: {
-        "pizza-picker": appfile("js/main.js"),
+        "pizza-picker": appfile("js/picker.js"),
         "pizza-picker-lc_fr": appfile("js/lc/fr.js")
     },
     output: {
@@ -26,7 +26,8 @@ module.exports = {
     },
     module: {
         preLoaders: [],
-        loaders: [{
+        loaders: [
+        {
             test: /\.jsx?$/,
             exclude: /node_modules/,
             loader: 'babel-loader',
@@ -34,7 +35,11 @@ module.exports = {
                 presets: ['es2015'],
                 plugins: ["mjsx"]
             }
-        }, ]
+        }, {
+            test: /\.css$/,
+            loader: 'style-loader!css-loader'
+        }
+        ]
     },
     resolve: {
         modulesDirectories: ['app/js', 'node_modules']
@@ -44,8 +49,8 @@ module.exports = {
     },
     devtool: Number(process.env.APP_DEBUG) ? '#source-map' : this.undefined,
     plugins: [
-        new webpack.optimize.OccurenceOrderPlugin(true),
+    new webpack.optimize.OccurenceOrderPlugin(true),
         // new webpack.optimize.UglifyJsPlugin({minimize: true}),
         new webpack.optimize.DedupePlugin()
-    ]
-}
+        ]
+    }

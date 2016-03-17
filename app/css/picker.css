@@ -1,0 +1,289 @@
+
+.pizza-picker, .pizza-picker * {
+	margin:0;
+	padding:0;
+	box-sizing: border-box;
+	font-family: sans-serif;
+}
+.pizza-picker {
+	display:block;
+	position:relative;
+	font-size:12px;
+	width: 100%;
+	-webkit-transform: translateZ(0);
+	-moz-transform: translateZ(0);
+	-ms-transform: translateZ(0);
+	-o-transform: translateZ(0);
+	transform: translateZ(0);
+}
+.pizza-picker ul, .pizza-picker li {
+	list-style: none outside none;
+}
+.pizza-picker a {
+	cursor: pointer;
+}
+
+/** variable @todo menuToggleHeight is the height always-visible of the menu,
+showing the toggle button **/
+/* @menuToggleHeight = 35px */
+
+.pizza-picker .picker-menu {
+	position: relative; /* not fixed because we're embedded in websites */
+	transition: height .3s linear;
+	z-index: 102;
+	background: #fff;
+	/*position: absolute;*/
+	top:0;
+	width: 100%;
+    -webkit-transition: max-height .4s ease-out;
+    transition: max-height .4s ease-out;
+    overflow: hidden;
+    background:#313131;
+    color: #efefef;
+    padding:5px;
+}
+
+/* Some responsiveness is handled with js. The .picker-wrapmenu class is added
+ * below 768px. In this case, the menu should cover the pizzas list.
+*/
+
+.pizza-picker.picker-swapmenu.view-pizzas .picker-menu {
+	max-height: 40px; /* @menuToggleHeight + padding 5*/
+}
+.pizza-picker.picker-swapmenu.view-menu .picker-menu {
+	max-height: 100vh;
+}
+
+.pizza-picker .picker-menu-toggle {
+	text-align: right;
+	height: 35px; /* @menuToggleHeight */
+}
+
+.pizza-picker .picker-menu-toggle > a {
+	display: inline-block;
+	vertical-align: middle;
+	padding:0 0 0 5px;
+	text-align: right;
+	height: 30px;  /* @menuToggleHeight  - 5px*/
+	line-height: 30px; /* @menuToggleHeight  - 5px*/
+}
+
+/** hamburger icon **/
+
+.pizza-picker .picker-bt-menu {
+	position: relative;
+	width: 30px;
+	padding:0 5px;
+}
+
+.pizza-picker .picker-bt-menu span {
+	position: absolute;
+	background-color: #666;
+	clear: both;
+	display: block;
+	height: 3px;
+	margin: 0 auto 3px;
+	left: 7px;
+	overflow: hidden;
+	text-indent: -9999px;
+	width: 20px;
+	/* reverse transform */
+	transition: top .2s ease .1s, opacity .001s linear .3s, transform .2s ease .3s;
+	transition: transform .2s ease .1s, opacity .001s linear .3s, top .2s ease .3s;
+}
+
+.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu span {
+	transition: top .2s ease .1s, opacity .001s linear .3s, transform .2s ease .3s;
+}
+
+.pizza-picker .picker-bt-menu .bt-top {
+	top: 7px;
+}
+.pizza-picker .picker-bt-menu .bt-middle {
+	top: 13px;
+}
+.pizza-picker .picker-bt-menu .bt-bottom {
+	top: 19px;
+}
+
+/** hamburger crossed icon **/
+
+.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-top {
+	transform: rotate(45deg);
+	top: 13px; /* 7px + 6 */
+}
+.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-middle {
+	opacity: 0;
+}
+.pizza-picker.picker-swapmenu.view-menu .picker-bt-menu .bt-bottom {
+	transform: rotate(-45deg);
+	top: 13px; /* 19 - 6 */
+}
+
+@media only screen and (min-width: 768px) {
+	.pizza-picker .picker-menu-toggle  {
+		display:none;
+	}
+	.pizza-picker .picker-menu {
+		float: left;
+		margin-top:5px;
+		width:300px;
+		border-radius: 2px;
+	}
+	.pizza-picker .picker-pizzas {
+		margin-left: 310px;
+	}
+}
+
+ul.picker-ingredients li {
+	width:100%;
+	display:flex;
+	height:26px;
+	line-height:26px;
+	margin: 2px 0;
+}
+ul.picker-ingredients li + li {
+	border-top: 1px dashed #ccc;
+}
+ul.picker-ingredients li > * {
+	vertical-align: middle;
+}
+ul.picker-ingredients li > span {
+	flex:1;
+}
+ul.picker-ingredients li a {
+	text-align:center;
+	margin: 3px 5px;
+	margin:3px;
+	line-height:20px;
+	border:1px solid #888;
+	color:#888;
+	height:20px;
+	width:20px;
+	display:inline-block;
+	border-radius:10px;
+	-moz-border-radius:10px;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select:none;
+	user-select:none;
+	-o-user-select:none;
+}
+
+ul.picker-ingredients li.status-yummy a.yummy {
+	background:pink;
+	color:white;
+}
+ul.picker-ingredients li.status-yuck a.yuck {
+	color: red;
+}
+ul.picker-ingredients li.status-yuck span, .filter-yuck {
+	color: red;
+	text-decoration: line-through;
+}
+
+ul.picker-filters li {
+	width:100%;
+	display:flex;
+	height:26px;
+	line-height:26px;
+	margin:2px 0;
+}
+ul.picker-filters li + li {
+	border-top: 1px dashed #ccc;
+}
+ul.picker-filters .on a {
+	color:green;
+}
+
+
+
+ul.picker-pizzas {
+	/* @menuToggleHeight + menu padding 5 + space between */
+	/*padding-top: 45px;*/
+	padding-top: 5px;
+	position:relative;
+}
+/**
+ * <li/> animation
+ *
+ * 3 phases :
+ *
+ * item          |  phase-1   |  phase-2      |  phase-3
+ * --------------+------------+---------------+-----------
+ * filter-in     |            |  translate Y  |  fade-in
+ * filter-out    |  fade-out  |  translate Y  |
+ * filter-move   |        ranslate Y          |
+ *
+ **/
+ul.picker-pizzas > li {
+	background:#fff;
+	line-height: 2em;
+	overflow:hidden;
+	position: absolute;
+	box-shadow:1px 1px 10px #aaa;
+	height: 100px;
+	z-index: 101;
+	transform: translate(0px, 0px);
+	opacity: 1;
+	width:100%;
+	border-radius: 2px;
+}
+
+ul.picker-pizzas li.filter-move {
+	transition: transform .4s ease-in-out;
+}
+
+ul.picker-pizzas li.filter-in {
+	transition: transform .001s ease-in-out .2s, opacity .2s linear .4s;
+}
+
+ul.picker-pizzas li.filter-out {
+	opacity: 0;
+	z-index: 100;
+	transition: opacity .2s linear, transform .2s ease-in-out .2s;
+}
+
+ul.picker-pizzas > li > * {
+	vertical-align:top;
+	padding:0;
+	margin:0;
+	overflow: hidden;
+	margin:0 5px;
+	height: 100px;
+}
+ul.picker-pizzas > li div.img {
+	width: 100px;
+	float:left;
+}
+ul.picker-pizzas > li div.infos {
+	display:block;
+}
+ul.picker-pizzas > li ul.prices {
+	float:right;
+	width: 100px;
+	padding:0 5px;
+	height: 90px;
+	margin:5px;
+	border-left:1px dashed #aaa;
+}
+ul.picker-pizzas h3 {
+	height:40px;
+	font-size:16px;
+	line-height:40px;
+}
+ul.picker-pizzas div.ingredients p {
+	height:60px;
+	line-height: 30px;
+	vertical-align: middle;
+	display: table-cell;
+}
+/*
+ul.picker-pizzas > li .ingredients .yummy {
+	text-decoration: underline;
+	color: pink;
+}
+body {
+	background: #313131;
+}
+*/

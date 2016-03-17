@@ -4,6 +4,7 @@ let fsignal = require('fsignal')
 let storeFactory = require('store')
 let viewFactory = require('./view.jsx')
 let respdata = require('responsive-data')
+require('../css/picker.css')
 
 // app
 let PizzaPicker = {i18n:{}}
