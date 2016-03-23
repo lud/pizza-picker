@@ -18,6 +18,8 @@ defmodule Pickr.Router do
 
     get "/", PageController, :index
     resources "/m", MealsetController
+
+    get "/map", PageController, :generate_map
   end
 
   # Other scopes may use custom stacks.

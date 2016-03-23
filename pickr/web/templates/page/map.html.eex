@@ -1,0 +1,7 @@
+map
+<div id="map">
+	<%= for region <- @map.regions do %>
+		<div data-x="<%= region.x %>">x: <%= region.x %>, y: <%= region.y %></div>
+	<% end %>
+<pre><%= :io_lib.format("~p", [@map]) %></pre>
+</div>
