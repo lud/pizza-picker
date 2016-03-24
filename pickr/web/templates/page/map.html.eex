@@ -1,7 +1,40 @@
-map
-<div id="map">
-	<%= for region <- @map.regions do %>
-		<div data-x="<%= region.x %>">x: <%= region.x %>, y: <%= region.y %></div>
-	<% end %>
+
+<div id="map"></div>
+
 <pre><%= :io_lib.format("~p", [@map]) %></pre>
-</div>
+
+
+<script type="text/javascript" src="<%= static_path(@conn, "/js/d3.min.js") %>"></script>
+<script>
+var landmap = <%= raw Poison.encode!(@map, pretty: true) %>;
+var config = {
+	cellSidePx: 10, 
+}
+var cellScale = d3.scale.linear()
+	.range([0, config.cellSidePx])
+	.domain([0, 1])
+function cellScaleWith(k) {
+	return function(d) {
+		return cellScale(d[k])
+	}
+}
+var svg = d3.select('#map').append('svg')
+	.attr({width: 3000, height: 1000})
+var regions = svg.selectAll('rect.region').data(landmap.regions)
+regions.enter().append('rect').classed('region', true)
+regions.attr({
+	x: cellScaleWith('x'),
+	y: cellScaleWith('y'),
+	width: cellScaleWith('width'),
+	height: cellScaleWith('height'),
+})
+
+
+console.log('landmap', landmap)
+</script>
+<style type="text/css">
+	rect.region {
+		stroke: black;
+		fill:white;
+	}
+</style>

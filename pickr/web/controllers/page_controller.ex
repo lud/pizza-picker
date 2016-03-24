@@ -51,59 +51,196 @@ defmodule LandMap do
   @default_height 15
 
   defstruct [
-    freecells: %{},
+    freecells: MapSet.new,
     regions: [],
     width: @default_width,
-    height: @default_height
+    height: @default_height,
+    max_reg_side: 10
   ]
+
+  @type t :: %LandMap{}
+
+  defmodule Region do
+    @type t :: %Region{}
+    # x & y are the orign corrdinates of the region rectangle. We work with SVG
+    # in mind so when y' > y, y' is below on the map image. When expanding top,
+    # we raise the height and LOWER the y coordinate. When expanding bottom, we
+    # just raise the height.
+    defstruct [x: 0, y: 0, width: 0, height: 0]
+    def from_cell({x, y}), do: %Region{x: x, y: y, width: 1, height: 1}
+
+    def expand(r = %Region{y: y, height: h}, :top),    do: %{r | y: y - 1, height: h + 1}
+    def expand(r = %Region{y: y, height: h}, :bottom), do: %{r | height: h + 1}
+    def expand(r = %Region{x: x, width:  w}, :left),   do: %{r | x: x - 1, width: w + 1}
+    def expand(r = %Region{x: x, width:  w}, :right),  do: %{r | width: w + 1}
+
+    def longer_side(%Region{width: w, height: h}), do: Kernel.max(w, h)
+
+    def cells(region = %Region{x: xmin, y: ymin, width: w, height: h}) do
+      for x <- xmin..cell_xmax(region),
+          y <- ymin..cell_ymax(region),
+          into: %MapSet{},
+          do: {x, y}
+    end
+
+    def in_bounds?(r = %Region{x: reg_xmin, y: reg_ymin, width: w, height: h}, xmin, ymin, xmax, ymax) do
+      reg_xmax = cell_xmax(r)
+      reg_ymax = cell_ymax(r)
+      is_in_bounds =
+      # min region bound must fit in all bounds
+      reg_xmin >= xmin && reg_xmin <= xmax &&
+        reg_ymin >= ymin && reg_ymin <= ymax &&
+      # max region bound must fit in all bounds
+        reg_xmax >= xmin && reg_xmax <= xmax &&
+        reg_ymax >= ymin && reg_ymax <= ymax
+      # IO.puts """
+      #   #{reg_xmin} >= #{xmin} && #{reg_xmin} <= #{xmax} &&
+      #     #{reg_ymin} >= #{ymin} && #{reg_ymin} <= #{ymax} &&
+      #   # max region bound must fit in all bounds
+      #     #{reg_xmax} >= #{xmin} && #{reg_xmax} <= #{xmax} &&
+      #     #{reg_ymax} >= #{ymin} && #{reg_ymax} <= #{ymax}
+
+      #     => #{is_in_bounds}
+      # """
+      is_in_bounds
+    end
+
+    # if x = 5 and width = 2 then we have cells where x = 5 and we have cells
+    # where x = 6. So, 6 = (5 + 2 - 1). cell_xmax and cell_ymax retuns the
+    # maximum *origin* coordinates of the cells. so, 1 unit less thant the real
+    # geographic maximum (the cell {1,1} has {2,2} as maximum geographic
+    # coordinates (actually 1.999999999999999999999999999999999...))
+    def cell_xmax(%Region{x: x, width: w}), do: x + w - 1
+    def cell_ymax(%Region{y: y, height: h}), do: y + h - 1
+  end
+
+
 
   def new(width \\ @default_width, height \\ @default_height) do
     freecells = for x <- 0..(width - 1),
-        y <- 0..(height - 1),
-        into: [] do
-        {x, y}
+                    y <- 0..(height - 1),
+                    into: [],
+                    do: {x, y}
+    _world = %LandMap{width: width, height: height, freecells: MapSet.new(freecells)}
+  end
+
+  def random_map() do
+    :rand.seed(:exsplus, {1,System.system_time,System.monotonic_time})
+    {:ok, landmap} = new |> add_random_regions(:fill) # @todo :fill
+    landmap
+  end
+
+  def insert_region(world = %LandMap{freecells: freecells, regions: regions}, region = %Region{}) do
+    {:ok, new_freecells} = region_fits(world, region)
+    %{world | freecells: new_freecells, regions: [region|regions]}
+  end
+
+  # @doc region_fits returns {:error, reason} or {:ok, new_freecells} where
+  # new_freecells is the list of cells without those used by region
+  def region_fits(world = %LandMap{freecells: freecells}, region = %Region{}) do
+    with :ok <- ensure(accept_max_side?(world, region), :max_side_size),
+         regcells = Region.cells(region),
+         :ok <- ensure(Region.in_bounds?(region, 0, 0, world.width - 1, world.height - 1), :out_of_bounds),
+         :ok <- ensure(cells_free?(world, regcells), :cells_not_free),
+      do: {:ok, MapSet.difference(freecells, regcells)}
+  end
+
+  defp accept_max_side?(%LandMap{max_reg_side: max_reg_side}, region) do
+    Region.longer_side(region) <= max_reg_side
+  end
+
+  defp cells_free?(%LandMap{freecells: freecells}, cells) do
+    MapSet.subset?(cells, freecells)
+  end
+
+  @spec add_random_regions(LandMap.t, regions_to_add :: :fill | Integer) :: LandMap.t
+
+  defp add_random_regions(world = %LandMap{}, 0),
+    # No more regions to add, return the world
+    do: {:ok, world}
+  defp add_random_regions(world = %LandMap{freecells: freecells}, :fill) do
+    # No more free cells but we want to fill so it's ok
+    if MapSet.size(freecells) === 0 do
+      {:ok, world}
+    else
+      # add another region and loop
+      {:ok, new_world} = add_random_regions(world, 1)
+      add_random_regions(new_world, :fill)
     end
-    world = %__MODULE__{width: width, height: height, freecells: freecells}
   end
 
-  def random_map(list) do
-    new |> add_random_regions(3) # @todo :fill
+  defp add_random_regions(%LandMap{freecells: []}, n) when is_number(n),
+    # No more free cells but we want to add <n> more regions
+    do: {:error, :no_more_space}
+
+  # Add one region then recurse with n-1
+  defp add_random_regions(world = %LandMap{}, n) when is_number(n) do
+    case add_rnd_region(world) do
+      {:ok, new_world} ->
+        IO.puts "new_world = #{inspect new_world}"
+        add_random_regions(new_world, n - 1)
+      err -> err
+    end
   end
 
-  # this is a front function for seeding
-  def add_random_regions(world = %__MODULE__{}, spec) do
-    # @todo spec is a number or :fill
-    :random.seed :erlang.monotonic_time
-    seeded_add_random_regions(world, spec)
+  defp add_rnd_region(world = %LandMap{freecells: freecells}) do
+    # a 1-cell region created from a free cell always fits
+    cell = Enum.random(freecells)
+    region = Region.from_cell(cell)
+    expand_region_or_insert(world, region, next_expand_side(), 0)
   end
 
-  def generate_random_regions(0) do
+  defp expand_region_or_insert(world, fitting_region, _, _max_try = 4) do
+    # max_try max reached (0,1,2,3 for the 4 sides so 4 is over)
+    {:ok, insert_region(world, fitting_region)}
+  end
+  defp expand_region_or_insert(world, fitting_region, expand_side, max_try) do
+    # we try to expand the region and fit it. if it fits, we keep the new
+    # expanded region and recurse to expand more. If it doesn't fit because we
+    # are to max size, we insert the prev region (the one that fits) to the
+    # world and we return the world. If it doesn't fit because cells are not
+    # free, we try on another side with max_try incremented to prevent infinite
+    # loop.
+    expanded_region = Region.expand(fitting_region, expand_side)
+    case region_fits(world, expanded_region) do
+      # region has maximum size :
+      {:error, :max_side_size} -> {:ok, insert_region(world, fitting_region)}
+      # doesn't fit, try another side :
+      {:error, reason} when reason === :out_of_bounds or reason === :cells_not_free -> expand_region_or_insert(
+          world, fitting_region, next_expand_side(expand_side), max_try + 1
+        )
+      # fits, try to expand more :
+      {:ok, _} ->
+        IO.puts "go further"
+        expand_region_or_insert(
+        world, expanded_region, next_expand_side(expand_side), 0 # reset max try
+      )
+    end
   end
 
-  def random_pick(list) do
-    Enum.random(list)
-  end
-
-  def random_rect(min \\ 1, max \\ 4) do
-    width = random(min, max)
-    height = random(min, max)
-    %{w: width, h: height}
-  end
-
-  def random(min, max) when min >= 1 do
-    offset = min - 1
-    max = max
-    base = :random.uniform(max - offset) # in 1..(max - offset)
-    base + offset
-  end
+  defp ensure(true, _), do: :ok
+  defp ensure(false, reason), do: {:error, reason}
 
   # randomized
-  def next_expand_side(:right), do: :up
-  def next_expand_side(:up), do: :down
-  def next_expand_side(:down), do: :left
+  def next_expand_side(), do: :top
+  def next_expand_side(:right), do: :top
+  def next_expand_side(:top), do: :bottom
+  def next_expand_side(:bottom), do: :left
   def next_expand_side(:left), do: :right
 
 end
+
+
+
+
+
+
+
+
+
+
+
+
 
 defmodule Pickr.PageController do
   use Pickr.Web, :controller
