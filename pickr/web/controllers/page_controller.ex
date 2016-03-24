@@ -12,7 +12,8 @@ defmodule LandMap do
   # Dans une boucle
   #   * On va sélectionner une cellule libre aléatoirement. Cela nous donne une
   #     région de width = 1 et height = 1 correspondant à la cellule.
-  #   * On initialise une valeur max_try à 0.
+  #   * On initialise une liste de côtés possible à éendre à [haut, bas, gauche,
+  #     droite] (shuffled)
   #   * On aggrandit ensuite la région par l'un de ses côtés sur toute la
   #     longueur du côté. Si par exemple on a un carré de 2 de côté, alors on
   #     ajoute 2 cellules sur un des côtés, par exemple sur le côté gauche. La
@@ -29,12 +30,14 @@ defmodule LandMap do
   #     taille de région autorisée.
   #     - Si la taille maximale est atteinte, on s'arrête et on garde le
   #       rectangle comme région.
-  #     - Sinon si on mord sur des cellules non-libres, on garde le rectngle et
-  #       on teste un autre côté. On augmente max_try de 1.
-  #     - Si jamais max_try est à 4 on a essayé les quatres côtés depuis la
-  #       forme courante et on n'a pas pu expand, on s'arrête là.
-  #     - Sinon, on garde notre nouvelle forme, on remet max_try à 0 puisque on
-  #       a réussi à changer de forme, et on boucle.
+  #     - Sinon si on mord sur des cellules non-libres, on garde le rectangle,
+  #       on supprime le côté échoué de nos côtés étendables et on teste d'un
+  #       autre côté.
+  #     - Si jamais on a essayé les quatres côtés (liste des côtés étendables
+  #       vides) depuis la forme courante et on n'a pas pu expand, on s'arrête
+  #       là.
+  #     - Sinon, on garde notre nouvelle forme, et on cherche à s'étendre d'un
+  #       autre côté. (ou bien on shuffle ? @todo doc ?)
   #
   #   * On enregistre notre région et on met à jour la liste des cellules
   #     libres.
@@ -47,15 +50,18 @@ defmodule LandMap do
   # typiquement les régions d'une seule cellule - on aura un biome non
   # habitable.
 
-  @default_width 15
-  @default_height 15
+  @square 16
+
+  @default_width @square
+  @default_height @square
+  @all_expand_sides [:top,:bottom,:left,:right]
 
   defstruct [
     freecells: MapSet.new,
     regions: [],
     width: @default_width,
     height: @default_height,
-    max_reg_side: 10
+    max_reg_side: 3
   ]
 
   @type t :: %LandMap{}
@@ -66,13 +72,24 @@ defmodule LandMap do
     # in mind so when y' > y, y' is below on the map image. When expanding top,
     # we raise the height and LOWER the y coordinate. When expanding bottom, we
     # just raise the height.
-    defstruct [x: 0, y: 0, width: 0, height: 0]
-    def from_cell({x, y}), do: %Region{x: x, y: y, width: 1, height: 1}
+    defstruct [
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      id: 0,
+      debug_creation_cell: :nothing,
+      debug_expand_steps: []
+    ]
+    def from_cell(cell = %{x: x, y: y}), do: %Region{x: x, y: y, width: 1, height: 1, debug_creation_cell: cell}
 
-    def expand(r = %Region{y: y, height: h}, :top),    do: %{r | y: y - 1, height: h + 1}
-    def expand(r = %Region{y: y, height: h}, :bottom), do: %{r | height: h + 1}
-    def expand(r = %Region{x: x, width:  w}, :left),   do: %{r | x: x - 1, width: w + 1}
-    def expand(r = %Region{x: x, width:  w}, :right),  do: %{r | width: w + 1}
+    def expand(r = %Region{debug_expand_steps: steps}, side) do
+      expand_shape(%{r | debug_expand_steps: [side|steps]}, side)
+    end
+    defp expand_shape(r = %Region{y: y, height: h}, :top),    do: %{r | y: y - 1, height: h + 1}
+    defp expand_shape(r = %Region{y: y, height: h}, :bottom), do: %{r | height: h + 1}
+    defp expand_shape(r = %Region{x: x, width:  w}, :left),   do: %{r | x: x - 1, width: w + 1}
+    defp expand_shape(r = %Region{x: x, width:  w}, :right),  do: %{r | width: w + 1}
 
     def longer_side(%Region{width: w, height: h}), do: Kernel.max(w, h)
 
@@ -80,7 +97,7 @@ defmodule LandMap do
       for x <- xmin..cell_xmax(region),
           y <- ymin..cell_ymax(region),
           into: %MapSet{},
-          do: {x, y}
+          do: %{x: x, y: y}
     end
 
     def in_bounds?(r = %Region{x: reg_xmin, y: reg_ymin, width: w, height: h}, xmin, ymin, xmax, ymax) do
@@ -93,15 +110,6 @@ defmodule LandMap do
       # max region bound must fit in all bounds
         reg_xmax >= xmin && reg_xmax <= xmax &&
         reg_ymax >= ymin && reg_ymax <= ymax
-      # IO.puts """
-      #   #{reg_xmin} >= #{xmin} && #{reg_xmin} <= #{xmax} &&
-      #     #{reg_ymin} >= #{ymin} && #{reg_ymin} <= #{ymax} &&
-      #   # max region bound must fit in all bounds
-      #     #{reg_xmax} >= #{xmin} && #{reg_xmax} <= #{xmax} &&
-      #     #{reg_ymax} >= #{ymin} && #{reg_ymax} <= #{ymax}
-
-      #     => #{is_in_bounds}
-      # """
       is_in_bounds
     end
 
@@ -110,34 +118,41 @@ defmodule LandMap do
     # maximum *origin* coordinates of the cells. so, 1 unit less thant the real
     # geographic maximum (the cell {1,1} has {2,2} as maximum geographic
     # coordinates (actually 1.999999999999999999999999999999999...))
-    def cell_xmax(%Region{x: x, width: w}), do: x + w - 1
-    def cell_ymax(%Region{y: y, height: h}), do: y + h - 1
+    defp cell_xmax(%Region{x: x, width: w}), do: x + w - 1
+    defp cell_ymax(%Region{y: y, height: h}), do: y + h - 1
   end
 
 
 
-  def new(width \\ @default_width, height \\ @default_height) do
+  defp new(width \\ @default_width, height \\ @default_height) do
     freecells = for x <- 0..(width - 1),
                     y <- 0..(height - 1),
-                    into: [],
-                    do: {x, y}
-    _world = %LandMap{width: width, height: height, freecells: MapSet.new(freecells)}
+                    # into: %MapSet{},
+                    do: %{x: x, y: y}
+    freecells = MapSet.new(freecells)
+    # IO.inspect(freecells)
+    _world = %LandMap{width: width, height: height, freecells: freecells}
   end
 
   def random_map() do
     :rand.seed(:exsplus, {1,System.system_time,System.monotonic_time})
     {:ok, landmap} = new |> add_random_regions(:fill) # @todo :fill
-    landmap
+    landmap |> reverse_regions
   end
 
-  def insert_region(world = %LandMap{freecells: freecells, regions: regions}, region = %Region{}) do
+  defp reverse_regions(world = %LandMap{regions: regions}) do
+    %{world | regions: Enum.reverse(regions)}
+  end
+
+  defp insert_region(world = %LandMap{freecells: freecells, regions: regions}, region = %Region{}) do
     {:ok, new_freecells} = region_fits(world, region)
-    %{world | freecells: new_freecells, regions: [region|regions]}
+    region2 = %{region | debug_expand_steps: Enum.reverse(region.debug_expand_steps)}
+    %{world | freecells: new_freecells, regions: [region2|regions]}
   end
 
   # @doc region_fits returns {:error, reason} or {:ok, new_freecells} where
   # new_freecells is the list of cells without those used by region
-  def region_fits(world = %LandMap{freecells: freecells}, region = %Region{}) do
+  defp region_fits(world = %LandMap{freecells: freecells}, region = %Region{}) do
     with :ok <- ensure(accept_max_side?(world, region), :max_side_size),
          regcells = Region.cells(region),
          :ok <- ensure(Region.in_bounds?(region, 0, 0, world.width - 1, world.height - 1), :out_of_bounds),
@@ -177,7 +192,6 @@ defmodule LandMap do
   defp add_random_regions(world = %LandMap{}, n) when is_number(n) do
     case add_rnd_region(world) do
       {:ok, new_world} ->
-        IO.puts "new_world = #{inspect new_world}"
         add_random_regions(new_world, n - 1)
       err -> err
     end
@@ -185,48 +199,75 @@ defmodule LandMap do
 
   defp add_rnd_region(world = %LandMap{freecells: freecells}) do
     # a 1-cell region created from a free cell always fits
+    IO.puts "\nAdding random region"
+    # Choosing a random cell
     cell = Enum.random(freecells)
+    # Or choosing a specific cell : here we try with the lowest x + y
+    # cell = Enum.reduce(freecells, &choose_start_cell_closest_to_center/2)
     region = Region.from_cell(cell)
-    expand_region_or_insert(world, region, next_expand_side(), 0)
+    expand_region_or_insert(world, region, expand_sides_list())
   end
 
-  defp expand_region_or_insert(world, fitting_region, _, _max_try = 4) do
-    # max_try max reached (0,1,2,3 for the 4 sides so 4 is over)
+
+  # defp choose_start_cell_closest_to_origin(a = %{x: xA, y: yA}, b = %{x: xB, y: yB})
+  #   when xA + yA < xB + yB, do: a
+  # defp choose_start_cell_closest_to_origin(a, b), do: b
+
+  # defp choose_start_cell_biggest_xy_diff(a = %{x: xA, y: yA}, b = %{x: xB, y: yB})
+  #   when abs(xA - yA) > abs(xB - yB), do: a
+  # defp choose_start_cell_biggest_xy_diff(a, b), do: b
+
+  # # use a global here. if map accepts dynamic square size, we'll have to use a
+  # # fun generator
+  # defp choose_start_cell_closest_to_center(a = %{x: xA, y: yA}, b = %{x: xB, y: yB}) do
+  #   square_center = @square / 2
+  #   dist_a = abs(square_center - xA) + abs(square_center - yA)
+  #   dist_b = abs(square_center - xB) + abs(square_center - yB)
+  #   if(dist_a < dist_b, do: a, else: b)
+  # end
+
+  defp expand_sides_list() do
+    Enum.shuffle(@all_expand_sides)
+    # Enum.drop(Enum.shuffle(@all_expand_sides), 1)
+  end
+
+  defp expand_region_or_insert(world, fitting_region, expand_sides = []) do
+    IO.puts "no more side to expand, return"
     {:ok, insert_region(world, fitting_region)}
   end
-  defp expand_region_or_insert(world, fitting_region, expand_side, max_try) do
+  defp expand_region_or_insert(world, fitting_region, [side|expand_sides]) do
+    IO.puts "try to expand [#{side}]"
     # we try to expand the region and fit it. if it fits, we keep the new
     # expanded region and recurse to expand more. If it doesn't fit because we
     # are to max size, we insert the prev region (the one that fits) to the
     # world and we return the world. If it doesn't fit because cells are not
-    # free, we try on another side with max_try incremented to prevent infinite
-    # loop.
-    expanded_region = Region.expand(fitting_region, expand_side)
+    # free, we try on another side
+    expanded_region = Region.expand(fitting_region, side)
     case region_fits(world, expanded_region) do
       # region has maximum size :
-      {:error, :max_side_size} -> {:ok, insert_region(world, fitting_region)}
+      {:error, :max_side_size} ->
+        IO.puts "max region size reached, return"
+        {:ok, insert_region(world, fitting_region)}
       # doesn't fit, try another side :
-      {:error, reason} when reason === :out_of_bounds or reason === :cells_not_free -> expand_region_or_insert(
-          world, fitting_region, next_expand_side(expand_side), max_try + 1
+      {:error, reason} when reason === :out_of_bounds or reason === :cells_not_free ->
+        IO.puts "could not expand this side, try other side"
+        expand_region_or_insert(
+          world, fitting_region, expand_sides
         )
       # fits, try to expand more :
       {:ok, _} ->
-        IO.puts "go further"
+        IO.puts "expanded, try other side"
+        # we keep the succesful side at the end of the list
+        # '++' is slow but the list is only 4 elems
         expand_region_or_insert(
-        world, expanded_region, next_expand_side(expand_side), 0 # reset max try
-      )
+          world, expanded_region, expand_sides ++ [side]
+        )
     end
   end
 
   defp ensure(true, _), do: :ok
   defp ensure(false, reason), do: {:error, reason}
 
-  # randomized
-  def next_expand_side(), do: :top
-  def next_expand_side(:right), do: :top
-  def next_expand_side(:top), do: :bottom
-  def next_expand_side(:bottom), do: :left
-  def next_expand_side(:left), do: :right
 
 end
 

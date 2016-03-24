@@ -1,40 +1,139 @@
 
 <div id="map"></div>
 
-<pre><%= :io_lib.format("~p", [@map]) %></pre>
-
-
-<script type="text/javascript" src="<%= static_path(@conn, "/js/d3.min.js") %>"></script>
+<script type="text/javascript" src="<%= static_path(@conn, "/js/d3.v3.js") %>"></script>
 <script>
 var landmap = <%= raw Poison.encode!(@map, pretty: true) %>;
+var mapSquareSide = Math.max(landmap.width, landmap.height)
+var svgSquareSide = 500
 var config = {
-	cellSidePx: 10, 
+	svg: {width: svgSquareSide, height: svgSquareSide},
 }
 var cellScale = d3.scale.linear()
-	.range([0, config.cellSidePx])
-	.domain([0, 1])
-function cellScaleWith(k) {
-	return function(d) {
-		return cellScale(d[k])
-	}
+	.domain([0, mapSquareSide])
+	.range([0, svgSquareSide])
+
+var colors20b = d3.scale.category20b()
+
+function randomColor() {
+	var i = Math.floor(Math.random() * 20)
+	return colors20b(i)
 }
+
+function getColor(region) {
+	return randomColor()
+}
+
 var svg = d3.select('#map').append('svg')
-	.attr({width: 3000, height: 1000})
-var regions = svg.selectAll('rect.region').data(landmap.regions)
-regions.enter().append('rect').classed('region', true)
-regions.attr({
-	x: cellScaleWith('x'),
-	y: cellScaleWith('y'),
-	width: cellScaleWith('width'),
-	height: cellScaleWith('height'),
-})
+	.attr({width: cellScale(landmap.width), height: cellScale(landmap.height)})
+
+// function cellScaleWith(k) {
+// 	return function(d) {
+// 		return cellScale(d[k])
+// 	}
+// }
+
+// var regions = svg.selectAll('rect.fdp_region').data(landmap.regions)
+// regions.enter().append('rect').classed('fdp_region', true)
+// regions.attr({
+// 	x: cellScaleWith('x'),
+// 	y: cellScaleWith('y'),
+// 	width: cellScaleWith('width'),
+// 	height: cellScaleWith('height'),
+// })
+
+var ANIM_PAUSE_BEFORE_REGION = 15
+var ANIM_EXPAND_DURATION = 15
+var ANIM_PAUSE_BEFORE_EXPAND = 15
+
+function after(time, fn, a, b, c, d, e, f) { return setTimeout(fn, time, a, b, c, d, e, f) }
+
+function initRegionRect(attrs, finalRegion, debug_index) {
+	var grayScaleVal = Math.round(Math.random() * 255)
+	var color = d3.rgb(grayScaleVal, grayScaleVal, grayScaleVal)
+	var rect = svg.append('rect')
+	.classed('region', 1)
+	.attr({
+		x: cellScale(attrs.x), y: cellScale(attrs.y), width: 0, height:0,
+		fill: getColor(finalRegion)
+	})
+	// .transition()
+	// .duration(ANIM_EXPAND_DURATION)
+	.attr({width: cellScale(attrs.width), height: cellScale(attrs.height)})
+	svg.append('text').text(debug_index)
+	.attr({x: cellScale(finalRegion.x), y: cellScale(finalRegion.y + 0.5)})
+	return rect
+}
+
+function expandRegionRect(rect, attrs) {
+	rect
+		// .transition()
+		// .interrupt()
+		// .transition()
+		// .duration(ANIM_EXPAND_DURATION)
+		.attr({
+			x:  cellScale(attrs.x),
+			y:  cellScale(attrs.y),
+			width:  cellScale(attrs.width),
+			height: cellScale(attrs.height)
+		})
+}
+
+function expandRegionShape(dimensions, side) {
+	if (side === 'left') {
+		dimensions.x -= 1
+		dimensions.width += 1
+	} else if (side === 'right') {
+		dimensions.width += 1
+	} else if (side === 'top') {
+		dimensions.y -= 1
+		dimensions.height += 1
+	} else if (side === 'bottom') {
+		dimensions.height += 1
+	} else {
+		throw new Error ('Cannot expand side ' + side)
+	}
+	return dimensions
+}
+
+function loopRegions(regIndex) {after(ANIM_PAUSE_BEFORE_REGION, function(){
+	if (landmap.regions[regIndex] === void 0)
+		return
+	var region = landmap.regions[regIndex]
+	var expands = region.debug_expand_steps
+
+	var rectDims = {
+		x: region.debug_creation_cell.x,
+		y: region.debug_creation_cell.y,
+		width: 1,
+		height: 1
+	}
+	var rect = initRegionRect(rectDims, region, regIndex)
+
+	function loopExpands(expIndex) {after(ANIM_PAUSE_BEFORE_EXPAND + ANIM_EXPAND_DURATION, function(){
+		if (expands[expIndex] === void 0) {
+			return loopRegions(regIndex + 1)
+		}
+		var side = expands[expIndex]
+		rectDims = expandRegionShape(rectDims, side)
+		expandRegionRect(rect, rectDims)
+		loopExpands(expIndex + 1)
+	})}
+	loopExpands(0)
+})}
+
+loopRegions(0)
 
 
-console.log('landmap', landmap)
 </script>
 <style type="text/css">
+	rect.fdp_region {
+		stroke: white;
+		stroke-width: 1px;
+		fill: #ccc;
+	}
 	rect.region {
-		stroke: black;
-		fill:white;
+		stroke: white;
+		stroke-width: 1px;
 	}
 </style>
