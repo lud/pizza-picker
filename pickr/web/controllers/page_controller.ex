@@ -1,3 +1,130 @@
+defmodule Region do
+  @type t :: %Region{}
+  # x & y are the orign corrdinates of the region rectangle. We work with SVG
+  # in mind so when y' > y, y' is below on the map image. When expanding top,
+  # we raise the height and LOWER the y coordinate. When expanding bottom, we
+  # just raise the height.
+  defstruct [
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    id: 0,
+    debug_creation_cell: :nothing,
+    debug_expand_steps: [],
+    # traits
+    climate: nil,
+    landstyle: nil,
+    outland: false,
+    biome: nil
+  ]
+  def from_cell(cell = %{x: x, y: y}), do: %Region{x: x, y: y, width: 1, height: 1, debug_creation_cell: cell}
+
+  def expand(r = %Region{debug_expand_steps: steps}, side) do
+    expand_shape(%{r | debug_expand_steps: [side|steps]}, side)
+  end
+  defp expand_shape(r = %Region{y: y, height: h}, :top),    do: %{r | y: y - 1, height: h + 1}
+  defp expand_shape(r = %Region{height: h}, :bottom), do: %{r | height: h + 1}
+  defp expand_shape(r = %Region{x: x, width:  w}, :left),   do: %{r | x: x - 1, width: w + 1}
+  defp expand_shape(r = %Region{width:  w}, :right),  do: %{r | width: w + 1}
+
+  def longer_side(%Region{width: w, height: h}), do: Kernel.max(w, h)
+  def shorter_side(%Region{width: w, height: h}), do: Kernel.min(w, h)
+
+  def area(%Region{width: w, height: h}), do: w * h
+
+  def cells(region = %Region{x: xmin, y: ymin, width: w, height: h}) do
+    for x <- xmin..cell_xmax(region),
+        y <- ymin..cell_ymax(region),
+        into: %MapSet{},
+        do: %{x: x, y: y}
+  end
+
+  def in_bounds?(r = %Region{x: reg_xmin, y: reg_ymin, width: w, height: h}, xmin, ymin, xmax, ymax) do
+    # checks the outer bounds. so the region {1,1} with width = 1 and height = 1
+    # fits in bounds 1,1,2,2
+    reg_xmax = xmax(r)
+    reg_ymax = ymax(r)
+    is_in_bounds =
+    # min region bound must fit in all bounds
+    reg_xmin >= xmin && reg_xmin <= xmax &&
+      reg_ymin >= ymin && reg_ymin <= ymax &&
+    # max region bound must fit in all bounds
+      reg_xmax >= xmin && reg_xmax <= xmax &&
+      reg_ymax >= ymin && reg_ymax <= ymax
+    is_in_bounds
+  end
+
+  def set_climate(r = %Region{}, :polar),     do: %{r | climate: :polar}
+  def set_climate(r = %Region{}, :temperate), do: %{r | climate: :temperate}
+  def set_climate(r = %Region{}, :tropical),  do: %{r | climate: :tropical}
+
+  def set_outland(r = %Region{}, is_outland \\ true) when is_boolean(is_outland), do: %{r | outland: is_outland}
+
+  # when outland, landstyle is just water
+  def set_landstyle(r = %Region{climate: nil}, _), do: raise "You must set the climate first"
+  def set_landstyle(r = %Region{}, landstyle) do
+    set_biome(Map.put(r, :landstyle, landstyle))
+  end
+
+  def set_biome(r = %Region{climate: c, landstyle: l}) do
+    set_biome(r, calc_biome(c, l))
+  end
+
+  def set_biome(r = %Region{}, biome) do
+    %{r | biome: biome}
+  end
+
+
+  # some biomes are universal
+  defp calc_biome(_,     :chasm),          do: :chasm
+  defp calc_biome(_,     :volcano),        do: :volcano
+  defp calc_biome(_,     :ocean),          do: :ocean
+  defp calc_biome(_,     :lake),           do: :lake
+  defp calc_biome(_,     :mountains),      do: :mountains
+
+  defp calc_biome(:polar,     :desert),    do: :ice
+  defp calc_biome(:polar,     :forest),    do: :taiga
+  defp calc_biome(:polar,     :grassland), do: :tundra
+  defp calc_biome(:polar,     :wetland),   do: :tundra # no iced wetlands so tundra too
+  defp calc_biome(:temperate, :desert),    do: :mojave
+  defp calc_biome(:temperate, :forest),    do: :woods
+  defp calc_biome(:temperate, :grassland), do: :country
+  defp calc_biome(:temperate, :wetland),   do: :swamp
+  defp calc_biome(:tropical,  :desert),    do: :sahara
+  defp calc_biome(:tropical,  :forest),    do: :jungle
+  defp calc_biome(:tropical,  :grassland), do: :savana
+  defp calc_biome(:tropical,  :wetland),   do: :mangrove
+
+  # if x = 5 and width = 2 then we have cells where x = 5 and we have cells
+  # where x = 6. So, 6 = (5 + 2 - 1). cell_xmax and cell_ymax retuns the
+  # maximum *origin* coordinates of the cells. so, 1 unit less thant the real
+  # geographic maximum (the cell {1,1} has {2,2} as maximum geographic
+  # coordinates (actually 1.999999999999999999999999999999999...))
+  defp cell_xmax(%Region{x: x, width: w}), do: x + w - 1
+  defp cell_ymax(%Region{y: y, height: h}), do: y + h - 1
+
+  # geo corrdinates. So if region is {1,1, width 1, height 1},
+  # xmax and ymax = 2
+  defp xmax(%Region{x: x, width: w}), do: x + w
+  defp ymax(%Region{y: y, height: h}), do: y + h
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 defmodule LandGrid do
   # https://bost.ocks.org/mike/algorithms/
   #
@@ -45,12 +172,12 @@ defmodule LandGrid do
   #   * On s'arrête quand il n'y a plus de cellules libres.
   #
   # Il est ensuite nécessaire de faire une passe sur les régions pour leur
-  # associer des propriétés (biome, slots, etc.). Pour les régions de taille
+  # associer des propriétés (landstyle, slots, etc.). Pour les régions de taille
   # inférieure à un certain seuil (petit côté / grande côté / surface ?) -
-  # typiquement les régions d'une seule cellule - on aura un biome non
+  # typiquement les régions d'une seule cellule - on aura un landstyle non
   # habitable.
 
-  @square 10
+  @square 32
 
   @default_width  @square
   @default_height @square
@@ -62,77 +189,13 @@ defmodule LandGrid do
     regions: [],
     width: @default_width,
     height: @default_height,
-    max_reg_side: 4,
-    max_reg_area: 15,
+    max_reg_side: 5,
+    max_reg_area: 20,
     max_reg_ratio: 999 # if X, width cannot be (X + 1) times longer than height, and height than width
   ]
 
   @type t :: %LandGrid{}
 
-  defmodule Region do
-    @type t :: %Region{}
-    # x & y are the orign corrdinates of the region rectangle. We work with SVG
-    # in mind so when y' > y, y' is below on the map image. When expanding top,
-    # we raise the height and LOWER the y coordinate. When expanding bottom, we
-    # just raise the height.
-    defstruct [
-      x: 0,
-      y: 0,
-      width: 0,
-      height: 0,
-      id: 0,
-      debug_creation_cell: :nothing,
-      debug_expand_steps: []
-    ]
-    def from_cell(cell = %{x: x, y: y}), do: %Region{x: x, y: y, width: 1, height: 1, debug_creation_cell: cell}
-
-    def expand(r = %Region{debug_expand_steps: steps}, side) do
-      expand_shape(%{r | debug_expand_steps: [side|steps]}, side)
-    end
-    defp expand_shape(r = %Region{y: y, height: h}, :top),    do: %{r | y: y - 1, height: h + 1}
-    defp expand_shape(r = %Region{y: y, height: h}, :bottom), do: %{r | height: h + 1}
-    defp expand_shape(r = %Region{x: x, width:  w}, :left),   do: %{r | x: x - 1, width: w + 1}
-    defp expand_shape(r = %Region{x: x, width:  w}, :right),  do: %{r | width: w + 1}
-
-    def longer_side(%Region{width: w, height: h}), do: Kernel.max(w, h)
-
-    def area(%Region{width: w, height: h}), do: w * h
-
-    def cells(region = %Region{x: xmin, y: ymin, width: w, height: h}) do
-      for x <- xmin..cell_xmax(region),
-          y <- ymin..cell_ymax(region),
-          into: %MapSet{},
-          do: %{x: x, y: y}
-    end
-
-    def in_bounds?(r = %Region{x: reg_xmin, y: reg_ymin, width: w, height: h}, xmin, ymin, xmax, ymax) do
-      # checks the outer bounds. so the region {1,1} with width = 1 and height = 1
-      # fits in bounds 1,1,2,2
-      reg_xmax = xmax(r)
-      reg_ymax = ymax(r)
-      is_in_bounds =
-      # min region bound must fit in all bounds
-      reg_xmin >= xmin && reg_xmin <= xmax &&
-        reg_ymin >= ymin && reg_ymin <= ymax &&
-      # max region bound must fit in all bounds
-        reg_xmax >= xmin && reg_xmax <= xmax &&
-        reg_ymax >= ymin && reg_ymax <= ymax
-      is_in_bounds
-    end
-
-    # if x = 5 and width = 2 then we have cells where x = 5 and we have cells
-    # where x = 6. So, 6 = (5 + 2 - 1). cell_xmax and cell_ymax retuns the
-    # maximum *origin* coordinates of the cells. so, 1 unit less thant the real
-    # geographic maximum (the cell {1,1} has {2,2} as maximum geographic
-    # coordinates (actually 1.999999999999999999999999999999999...))
-    defp cell_xmax(%Region{x: x, width: w}), do: x + w - 1
-    defp cell_ymax(%Region{y: y, height: h}), do: y + h - 1
-
-    # geo corrdinates. So if region is {1,1, width 1, height 1},
-    # xmax and ymax = 2
-    defp xmax(%Region{x: x, width: w}), do: x + w
-    defp ymax(%Region{y: y, height: h}), do: y + h
-  end
 
 
 
@@ -151,6 +214,7 @@ defmodule LandGrid do
     width = Keyword.get(options, :width, @default_width)
     height = Keyword.get(options, :height, @default_height)
     :rand.seed(:exsplus, {1,System.system_time,System.monotonic_time})
+    # :rand.seed(:exsplus, {1,2,3}) # externalize seed
     {:ok, landmap} = new(width, height) |> add_random_regions(regions_amount)
     landmap
     |> reverse_regions # for debugging, reorder with creation order
@@ -286,7 +350,14 @@ defmodule LandGrid do
 
 end
 
+
+
+
+
 defmodule LandMap do
+
+  @default_climate_band_height 30
+  @default_outland_landstyle :ocean
 
   defstruct [
     regions: nil,
@@ -294,34 +365,85 @@ defmodule LandMap do
     height: nil,
   ]
 
-
   def random_map(options \\ []) do
+    # @todo each function walk the regions list. We should walk only once and
+    # put all the traits at once for each region.
     LandGrid.random_grid(options)
     |> grid_to_map
-    |> set_regions_biomes(options)
+    |> set_outland_traits
+    |> set_latitude_traits(options)
+    |> set_regions_landstyles(options)
   end
 
   defp grid_to_map(%{regions: regions, width: width, height: height}) do
     %LandMap{regions: regions, width: width, height: height}
   end
 
-  defp set_regions_biomes(landmap, options) do
-    landmap
-    # |> set_latitude_specs(options)
+  defp set_outland_traits(landmap = %LandMap{regions: regions, width: width, height: height}) do
+    # remove every region touching the borders of the grid
+    # @todo put this function into the grid generator module ?
+    calc_outland = fn(region) ->
+      if region.x === 0
+         || region.y === 0
+         || region.x + region.width === width
+         || region.y + region.height === height
+      do
+        Region.set_outland(region)
+      else
+        region
+      end
+    end
+    Map.put(landmap, :regions, Enum.map(regions, calc_outland))
   end
-
-  defp set_latitude_specs(landmap = %LandMap{height: height, regions: regions}, options) do
+  defp set_latitude_traits(landmap = %LandMap{height: height, regions: regions}, options) do
     # Split the map in 3 parts, 1 north, 1 south, and the middle north and south
     # parts take <special_zone_height> precent  hight each. Every region contained (entirely) in one of
     # this zones will get the spec :polar or :tropical
-    special_zone_height = Keyword.get(options, :special_zone_height, 30)
+    special_zone_height = Keyword.get(options, :special_zone_height, @default_climate_band_height)
     hemisphere = Keyword.get(options, :hemisphere, :north)
-    {north_spec, south_spec} = case hemisphere do
+    {north_trait, south_trait} = case hemisphere do
       :north -> {:polar, :tropical}
       :south -> {:tropical, :polar}
     end
     north_cap = height * special_zone_height / 100
     south_cap = height * (100 - special_zone_height) / 100
+    set_latitude_trait = fn(region) ->
+      is_north = Region.in_bounds?(region, -999999, 0, 999999, north_cap)
+      is_south = Region.in_bounds?(region, -999999, south_cap, 999999, height)
+      Region.set_climate(region, cond do
+        is_north -> north_trait
+        is_south -> south_trait
+        true ->     :temperate
+      end)
+    end
+    Map.put(landmap, :regions, Enum.map(regions, set_latitude_trait))
+  end
+
+  defp set_regions_landstyles(landmap = %LandMap{regions: regions}, options) do
+    Map.put(landmap, :regions, Enum.map(regions, &(set_region_landstyle(&1, options))))
+  end
+
+  defp set_region_landstyle(region, options) do
+    # landstyles are types of vegetation / animals / resources but the final result
+    # depend of the latitude trait : if the landstyle is forest and the trait
+    # tropical is true, then the actual look & resources will correspond to a
+    # jungle. If the landstyle is desert and the polar trait is true, il will be
+    # just flat ice.
+
+    # if region has a side of 1 lenght, it has chances to be a lake or a
+    # mountain.
+    landstyles_pool =
+      case {Region.shorter_side(region), Region.area(region), region.outland} do
+        # outland have a specific landstyle :
+        {_, _, true} -> [Keyword.get(options, :outland_landstyle, @default_outland_landstyle)]
+        # 1x1 regions :
+        {_, 1, _} -> [:volcano, :chasm]
+        # regions with a side of 1 (2x mountains, 2x lakes)
+        {1, _, _} -> [:forest, :wetland, :mountains, :mountains, :lake, :lake]
+        # all other regions
+        {_, _, _} -> [:forest, :desert, :wetland, :grassland]
+      end
+    Region.set_landstyle(region, Enum.random(landstyles_pool))
   end
 
 end

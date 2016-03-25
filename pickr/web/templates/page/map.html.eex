@@ -5,20 +5,23 @@
 <script>
 var landmap = <%= raw Poison.encode!(@map, pretty: true) %>;
 var mapSquareSide = Math.max(landmap.width, landmap.height)
-var svgLongerSide = 200
+var svgLongerSide = 320
 var conf = {
 	svg: {width: svgLongerSide, height: svgLongerSide},
-	marginCells: {top: 3, left: 3, bottom: 3, right: 3},
+	marginCells: {topbottom: 3, leftright: 3},
 margin: {/* below */}
 }
 var cellScale = d3.scale.linear()
 	.domain([0, mapSquareSide])
 	.range([0, svgLongerSide])
 
-conf.margin.top = cellScale(conf.marginCells.top)
-conf.margin.left = cellScale(conf.marginCells.left)
-conf.margin.bottom = cellScale(conf.marginCells.bottom)
-conf.margin.right = cellScale(conf.marginCells.right)
+conf.margin.topbottom = cellScale(conf.marginCells.topbottom)
+conf.margin.leftright = cellScale(conf.marginCells.leftright)
+
+conf.svg.center = {
+	x: conf.margin.leftright + Math.round(cellScale(landmap.width) / 2),
+	y: conf.margin.topbottom + Math.round(cellScale(landmap.height) / 2),
+}
 
 var baseColor = d3.rgb(200,200,210)
 // var outerColor = d3.rgb(240,240,255)
@@ -28,12 +31,15 @@ var flashingColor = d3.rgb(100,100,100)
 
 var svg = d3.select('#map').append('svg')
 	.attr({
-		width: cellScale(landmap.width) + conf.margin.left + conf.margin.right,
-		height: cellScale(landmap.height) + conf.margin.top + conf.margin.bottom
+		// width: cellScale(landmap.width) + conf.margin.leftright * 2,
+		// height: cellScale(landmap.height) + conf.margin.topbottom * 2
+		width: 1000, height: 1000
 	})
 	.append('g')
 	.attr({
-		transform: 'translate('+conf.margin.left+','+conf.margin.top+')'
+		transform: 'translate('+conf.margin.leftright+','+conf.margin.topbottom+')'
+		// transform: 'translate('+conf.margin.leftright+','+conf.margin.topbottom+') rotate(210,'+conf.svg.center.x+','+conf.svg.center.y+') skewX(-30) scale(1,.864)'
+		// skewX(-30) rotate(1)
 	})
 
 // function cellScaleWith(k) {
@@ -51,9 +57,10 @@ var svg = d3.select('#map').append('svg')
 // 	height: cellScaleWith('height'),
 // })
 
-var ANIM_PAUSE_BEFORE_REGION =10
-var ANIM_EXPAND_DURATION =10
-var ANIM_PAUSE_BEFORE_EXPAND =10
+var ANIM_EXPAND_DURATION = 0
+var ANIM_PAUSE_BEFORE_EXPAND = 0
+var ANIM_PAUSE_BEFORE_REGION = 0
+var ANIM_RECT_COLOR_FADE = 0
 
 function after(time, fn, a, b, c, d, e, f) {
 	if (time > 0)
@@ -62,17 +69,30 @@ function after(time, fn, a, b, c, d, e, f) {
 		fn(a, b, c, d, e, f)
 }
 
-function initRegionRect(attrs, finalRegion, debug_index) {
+function initRegionRect(attrs, region, debug_index) {
 	var rect = svg.append('rect')
 	.classed('region', 1)
+	.classed('biome-'+region.biome, 1)
+	.classed('temperate', region.climate === 'temperate')
+	.classed('tropical', region.climate === 'tropical')
+	.classed('polar', region.climate === 'polar')
+	.classed('outland', region.outland)
 	.attr({
 		x: cellScale(attrs.x), y: cellScale(attrs.y), width: 0, height:0,
-		fill: flashingColor
+		opacity: 0
 	})
 	.attr({width: cellScale(attrs.width), height: cellScale(attrs.height)})
+	after(1, function(){
+		rect
+			.transition()
+			.duration(ANIM_RECT_COLOR_FADE) // during first expand
+			.attr({
+				opacity: 1
+			})
+	})
 	// svg.append('text')
 		// .text(debug_index)
-		// .attr({x: cellScale(finalRegion.x), y: cellScale(finalRegion.y + 0.5)})
+		// .attr({x: cellScale(region.x), y: cellScale(region.y + 0.5)})
 	return rect
 }
 
@@ -90,21 +110,6 @@ function expandRegionRect(rect, attrs) {
 		})
 }
 
-function fadeRegionRectColor(rect, region) {
-	var color = isOuterRegion(region) ? outerColor : baseColor
-	rect.transition()
-		.attr({fill: color})
-}
-
-function isOuterRegion(region) {
-	if (region.x === 0 || region.y === 0)
-		return true
-	if (region.x + region.width === landmap.width)
-		return true
-	if (region.y + region.height === landmap.height)
-		return true
-	return false
-}
 
 function expandRegionShape(dimensions, side) {
 	if (side === 'left') {
@@ -139,7 +144,6 @@ function loopRegions(regIndex) {after(ANIM_PAUSE_BEFORE_REGION, function(){
 
 	function loopExpands(expIndex) {after(ANIM_PAUSE_BEFORE_EXPAND + ANIM_EXPAND_DURATION, function(){
 		if (expands[expIndex] === void 0) {
-			fadeRegionRectColor(rect, region)
 			return loopRegions(regIndex + 1)
 		}
 		var side = expands[expIndex]
@@ -155,13 +159,25 @@ loopRegions(0)
 
 </script>
 <style type="text/css">
-	rect.fdp_region {
-		stroke: white;
-		stroke-width: 1px;
-		fill: #ccc;
-	}
 	rect.region {
-		stroke: white;
+		stroke: none;
 		stroke-width: 1px;
 	}
+	rect.biome-chasm {fill:     Black }
+    rect.biome-volcano {fill:   Coral }
+    rect.biome-ocean {fill:     CornflowerBlue  }
+    body {background:           CornflowerBlue  }
+    rect.biome-lake {fill:      DarkCyan }
+    rect.biome-mountains {fill: DarkGrey }
+    rect.biome-ice {fill:       Cornsilk }
+    rect.biome-taiga {fill:     Aquamarine }
+    rect.biome-tundra {fill:    LightGreen }
+    rect.biome-mojave {fill:    SandyBrown }
+    rect.biome-woods {fill:     ForestGreen }
+    rect.biome-country {fill:   YellowGreen }
+    rect.biome-swamp {fill:     Olive}
+    rect.biome-sahara {fill:    Khaki }
+    rect.biome-jungle {fill:    OliveDrab }
+    rect.biome-savana {fill:    Peru }
+    rect.biome-mangrove {fill:  Teal }
 </style>
