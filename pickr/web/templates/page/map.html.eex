@@ -5,20 +5,36 @@
 <script>
 var landmap = <%= raw Poison.encode!(@map, pretty: true) %>;
 var mapSquareSide = Math.max(landmap.width, landmap.height)
-var svgSquareSide = 320
-var config = {
-	svg: {width: svgSquareSide, height: svgSquareSide},
+var svgLongerSide = 200
+var conf = {
+	svg: {width: svgLongerSide, height: svgLongerSide},
+	marginCells: {top: 3, left: 3, bottom: 3, right: 3},
+margin: {/* below */}
 }
 var cellScale = d3.scale.linear()
 	.domain([0, mapSquareSide])
-	.range([0, svgSquareSide])
+	.range([0, svgLongerSide])
+
+conf.margin.top = cellScale(conf.marginCells.top)
+conf.margin.left = cellScale(conf.marginCells.left)
+conf.margin.bottom = cellScale(conf.marginCells.bottom)
+conf.margin.right = cellScale(conf.marginCells.right)
+
 var baseColor = d3.rgb(200,200,210)
 // var outerColor = d3.rgb(240,240,255)
-var outerColor = 'white'
+// var outerColor = 'white'
+var outerColor = baseColor
 var flashingColor = d3.rgb(100,100,100)
 
 var svg = d3.select('#map').append('svg')
-	.attr({width: cellScale(landmap.width), height: cellScale(landmap.height)})
+	.attr({
+		width: cellScale(landmap.width) + conf.margin.left + conf.margin.right,
+		height: cellScale(landmap.height) + conf.margin.top + conf.margin.bottom
+	})
+	.append('g')
+	.attr({
+		transform: 'translate('+conf.margin.left+','+conf.margin.top+')'
+	})
 
 // function cellScaleWith(k) {
 // 	return function(d) {
@@ -35,11 +51,16 @@ var svg = d3.select('#map').append('svg')
 // 	height: cellScaleWith('height'),
 // })
 
-var ANIM_PAUSE_BEFORE_REGION = 15
-var ANIM_EXPAND_DURATION = 15
-var ANIM_PAUSE_BEFORE_EXPAND = 15
+var ANIM_PAUSE_BEFORE_REGION =10
+var ANIM_EXPAND_DURATION =10
+var ANIM_PAUSE_BEFORE_EXPAND =10
 
-function after(time, fn, a, b, c, d, e, f) { return setTimeout(fn, time, a, b, c, d, e, f) }
+function after(time, fn, a, b, c, d, e, f) {
+	if (time > 0)
+		setTimeout(fn, time, a, b, c, d, e, f)
+	else
+		fn(a, b, c, d, e, f)
+}
 
 function initRegionRect(attrs, finalRegion, debug_index) {
 	var rect = svg.append('rect')

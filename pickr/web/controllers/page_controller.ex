@@ -1,4 +1,4 @@
-defmodule LandMap do
+defmodule LandGrid do
   # https://bost.ocks.org/mike/algorithms/
   #
 
@@ -50,10 +50,11 @@ defmodule LandMap do
   # typiquement les régions d'une seule cellule - on aura un biome non
   # habitable.
 
-  @square 22
+  @square 10
 
-  @default_width @square
+  @default_width  @square
   @default_height @square
+
   @all_expand_sides [:top,:bottom,:left,:right]
 
   defstruct [
@@ -63,10 +64,10 @@ defmodule LandMap do
     height: @default_height,
     max_reg_side: 4,
     max_reg_area: 15,
-    max_reg_ratio: 5 # if X, width cannot be (X + 1) times longer than height, and height than width
+    max_reg_ratio: 999 # if X, width cannot be (X + 1) times longer than height, and height than width
   ]
 
-  @type t :: %LandMap{}
+  @type t :: %LandGrid{}
 
   defmodule Region do
     @type t :: %Region{}
@@ -105,8 +106,10 @@ defmodule LandMap do
     end
 
     def in_bounds?(r = %Region{x: reg_xmin, y: reg_ymin, width: w, height: h}, xmin, ymin, xmax, ymax) do
-      reg_xmax = cell_xmax(r)
-      reg_ymax = cell_ymax(r)
+      # checks the outer bounds. so the region {1,1} with width = 1 and height = 1
+      # fits in bounds 1,1,2,2
+      reg_xmax = xmax(r)
+      reg_ymax = ymax(r)
       is_in_bounds =
       # min region bound must fit in all bounds
       reg_xmin >= xmin && reg_xmin <= xmax &&
@@ -124,33 +127,41 @@ defmodule LandMap do
     # coordinates (actually 1.999999999999999999999999999999999...))
     defp cell_xmax(%Region{x: x, width: w}), do: x + w - 1
     defp cell_ymax(%Region{y: y, height: h}), do: y + h - 1
+
+    # geo corrdinates. So if region is {1,1, width 1, height 1},
+    # xmax and ymax = 2
+    defp xmax(%Region{x: x, width: w}), do: x + w
+    defp ymax(%Region{y: y, height: h}), do: y + h
   end
 
 
 
-  defp new(width \\ @default_width, height \\ @default_height) do
+  defp new(width, height) do
     freecells = for x <- 0..(width - 1),
                     y <- 0..(height - 1),
                     # into: %MapSet{},
                     do: %{x: x, y: y}
     freecells = MapSet.new(freecells)
     # IO.inspect(freecells)
-    _world = %LandMap{width: width, height: height, freecells: freecells}
+    _world = %LandGrid{width: width, height: height, freecells: freecells}
   end
 
-  def random_map() do
+  def random_grid(options) do
+    regions_amount = Keyword.get(options, :regions_amount, :fill)
+    width = Keyword.get(options, :width, @default_width)
+    height = Keyword.get(options, :height, @default_height)
     :rand.seed(:exsplus, {1,System.system_time,System.monotonic_time})
-    {:ok, landmap} = new |> add_random_regions(:fill) # @todo :fill
+    {:ok, landmap} = new(width, height) |> add_random_regions(regions_amount)
     landmap
-    |> reverse_regions
-    |> Map.put(:freecells, nil)
+    |> reverse_regions # for debugging, reorder with creation order
+    |> Map.put(:freecells, nil) # remove freecells info
   end
 
-  defp reverse_regions(world = %LandMap{regions: regions}) do
+  defp reverse_regions(world = %LandGrid{regions: regions}) do
     %{world | regions: Enum.reverse(regions)}
   end
 
-  defp insert_region(world = %LandMap{freecells: freecells, regions: regions}, region = %Region{}) do
+  defp insert_region(world = %LandGrid{freecells: freecells, regions: regions}, region = %Region{}) do
     {:ok, new_freecells} = region_fits(world, region)
     region2 = %{region | debug_expand_steps: Enum.reverse(region.debug_expand_steps)}
     %{world | freecells: new_freecells, regions: [region2|regions]}
@@ -158,42 +169,42 @@ defmodule LandMap do
 
   # @doc region_fits returns {:error, reason} or {:ok, new_freecells} where
   # new_freecells is the list of cells without those used by region
-  defp region_fits(world = %LandMap{freecells: freecells}, region = %Region{}) do
+  defp region_fits(world = %LandGrid{freecells: freecells}, region = %Region{}) do
     with :ok <- ensure(accept_max_side?(world, region), :max_region_dimensions),
          :ok <- ensure(accept_max_area?(world, region), :max_region_dimensions),
          :ok <- ensure(accept_max_ratio?(world, region), :max_region_dimensions),
          regcells = Region.cells(region),
-         :ok <- ensure(Region.in_bounds?(region, 0, 0, world.width - 1, world.height - 1), :out_of_bounds),
+         :ok <- ensure(Region.in_bounds?(region, 0, 0, world.width, world.height), :out_of_bounds),
          :ok <- ensure(cells_free?(world, regcells), :cells_not_free),
       do: {:ok, MapSet.difference(freecells, regcells)}
   end
 
-  defp accept_max_side?(%LandMap{max_reg_side: max_reg_side}, region) do
+  defp accept_max_side?(%LandGrid{max_reg_side: max_reg_side}, region) do
     Region.longer_side(region) <= max_reg_side
   end
 
-  defp accept_max_area?(%LandMap{max_reg_area: max_reg_area}, region) do
+  defp accept_max_area?(%LandGrid{max_reg_area: max_reg_area}, region) do
     Region.area(region) <= max_reg_area
   end
 
-  defp accept_max_ratio?(%LandMap{max_reg_ratio: max_reg_ratio}, %Region{width: w, height: h}) do
+  defp accept_max_ratio?(%LandGrid{max_reg_ratio: max_reg_ratio}, %Region{width: w, height: h}) do
     {min_side, max_side} = if(w < h, do: {w, h}, else: {h, w})
     ratio = max_side / min_side
     ratio <= max_reg_ratio
   end
 
-  defp cells_free?(%LandMap{freecells: freecells}, cells) do
+  defp cells_free?(%LandGrid{freecells: freecells}, cells) do
     MapSet.subset?(cells, freecells)
   end
 
-  @spec add_random_regions(LandMap.t, regions_to_add :: :fill | Integer) :: {:ok, LandMap.t}
+  @spec add_random_regions(LandGrid.t, regions_to_add :: :fill | Integer) :: {:ok, LandGrid.t}
 
-  defp add_random_regions(world = %LandMap{}, 0) do
+  defp add_random_regions(world = %LandGrid{}, 0) do
     # No more regions to add, return the world
     # IO.puts "No more space"
     {:ok, world}
   end
-  defp add_random_regions(world = %LandMap{freecells: freecells}, :fill) do
+  defp add_random_regions(world = %LandGrid{freecells: freecells}, :fill) do
     # No more free cells but we want to fill so it's ok
     if MapSet.size(freecells) === 0 do
       {:ok, world}
@@ -204,12 +215,12 @@ defmodule LandMap do
     end
   end
 
-  defp add_random_regions(%LandMap{freecells: []}, n) when is_number(n),
+  defp add_random_regions(%LandGrid{freecells: []}, n) when is_number(n),
     # No more free cells but we want to add <n> more regions
     do: {:error, :no_more_space}
 
   # Add one region then recurse with n-1
-  defp add_random_regions(world = %LandMap{}, n) when is_number(n) do
+  defp add_random_regions(world = %LandGrid{}, n) when is_number(n) do
     case add_rnd_region(world) do
       {:ok, new_world} ->
         add_random_regions(new_world, n - 1)
@@ -217,33 +228,13 @@ defmodule LandMap do
     end
   end
 
-  defp add_rnd_region(world = %LandMap{freecells: freecells}) do
+  defp add_rnd_region(world = %LandGrid{freecells: freecells}) do
     # a 1-cell region created from a free cell always fits
     # IO.puts "\nAdding random region"
     # Choosing a random cell
     cell = Enum.random(freecells)
-    # Or choosing a specific cell : here we try with the lowest x + y
-    # cell = Enum.reduce(freecells, &choose_start_cell_biggest_xy_diff/2)
     region = Region.from_cell(cell)
     expand_region_or_insert(world, region, expand_sides_list())
-  end
-
-
-  defp choose_start_cell_closest_to_origin(a = %{x: xA, y: yA}, b = %{x: xB, y: yB})
-    when xA + yA < xB + yB, do: a
-  defp choose_start_cell_closest_to_origin(a, b), do: b
-
-  defp choose_start_cell_biggest_xy_diff(a = %{x: xA, y: yA}, b = %{x: xB, y: yB})
-    when abs(xA - yA) > abs(xB - yB), do: a
-  defp choose_start_cell_biggest_xy_diff(a, b), do: b
-
-  # use a global here. if map accepts dynamic square size, we'll have to use a
-  # fun generator
-  defp choose_start_cell_closest_to_center(a = %{x: xA, y: yA}, b = %{x: xB, y: yB}) do
-    square_center = @square / 2
-    dist_a = abs(square_center - xA) + abs(square_center - yA)
-    dist_b = abs(square_center - xB) + abs(square_center - yB)
-    if(dist_a < dist_b, do: a, else: b)
   end
 
   defp expand_sides_list() do
@@ -278,8 +269,6 @@ defmodule LandMap do
         expand_region_or_insert(
           world, fitting_region, other_expand_sides
         )
-        # IO.puts "could not expand this side, stop there"
-        # {:ok, insert_region(world, fitting_region)}
       # fits, try to expand more :
       {:ok, _} ->
         # IO.puts "expanded, try other side"
@@ -297,6 +286,45 @@ defmodule LandMap do
 
 end
 
+defmodule LandMap do
+
+  defstruct [
+    regions: nil,
+    width: nil,
+    height: nil,
+  ]
+
+
+  def random_map(options \\ []) do
+    LandGrid.random_grid(options)
+    |> grid_to_map
+    |> set_regions_biomes(options)
+  end
+
+  defp grid_to_map(%{regions: regions, width: width, height: height}) do
+    %LandMap{regions: regions, width: width, height: height}
+  end
+
+  defp set_regions_biomes(landmap, options) do
+    landmap
+    # |> set_latitude_specs(options)
+  end
+
+  defp set_latitude_specs(landmap = %LandMap{height: height, regions: regions}, options) do
+    # Split the map in 3 parts, 1 north, 1 south, and the middle north and south
+    # parts take <special_zone_height> precent  hight each. Every region contained (entirely) in one of
+    # this zones will get the spec :polar or :tropical
+    special_zone_height = Keyword.get(options, :special_zone_height, 30)
+    hemisphere = Keyword.get(options, :hemisphere, :north)
+    {north_spec, south_spec} = case hemisphere do
+      :north -> {:polar, :tropical}
+      :south -> {:tropical, :polar}
+    end
+    north_cap = height * special_zone_height / 100
+    south_cap = height * (100 - special_zone_height) / 100
+  end
+
+end
 
 
 
