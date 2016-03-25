@@ -50,7 +50,7 @@ defmodule LandMap do
   # typiquement les régions d'une seule cellule - on aura un biome non
   # habitable.
 
-  @square 16
+  @square 22
 
   @default_width @square
   @default_height @square
@@ -61,7 +61,9 @@ defmodule LandMap do
     regions: [],
     width: @default_width,
     height: @default_height,
-    max_reg_side: 3
+    max_reg_side: 4,
+    max_reg_area: 15,
+    max_reg_ratio: 5 # if X, width cannot be (X + 1) times longer than height, and height than width
   ]
 
   @type t :: %LandMap{}
@@ -92,6 +94,8 @@ defmodule LandMap do
     defp expand_shape(r = %Region{x: x, width:  w}, :right),  do: %{r | width: w + 1}
 
     def longer_side(%Region{width: w, height: h}), do: Kernel.max(w, h)
+
+    def area(%Region{width: w, height: h}), do: w * h
 
     def cells(region = %Region{x: xmin, y: ymin, width: w, height: h}) do
       for x <- xmin..cell_xmax(region),
@@ -137,7 +141,9 @@ defmodule LandMap do
   def random_map() do
     :rand.seed(:exsplus, {1,System.system_time,System.monotonic_time})
     {:ok, landmap} = new |> add_random_regions(:fill) # @todo :fill
-    landmap |> reverse_regions
+    landmap
+    |> reverse_regions
+    |> Map.put(:freecells, nil)
   end
 
   defp reverse_regions(world = %LandMap{regions: regions}) do
@@ -153,7 +159,9 @@ defmodule LandMap do
   # @doc region_fits returns {:error, reason} or {:ok, new_freecells} where
   # new_freecells is the list of cells without those used by region
   defp region_fits(world = %LandMap{freecells: freecells}, region = %Region{}) do
-    with :ok <- ensure(accept_max_side?(world, region), :max_side_size),
+    with :ok <- ensure(accept_max_side?(world, region), :max_region_dimensions),
+         :ok <- ensure(accept_max_area?(world, region), :max_region_dimensions),
+         :ok <- ensure(accept_max_ratio?(world, region), :max_region_dimensions),
          regcells = Region.cells(region),
          :ok <- ensure(Region.in_bounds?(region, 0, 0, world.width - 1, world.height - 1), :out_of_bounds),
          :ok <- ensure(cells_free?(world, regcells), :cells_not_free),
@@ -164,15 +172,27 @@ defmodule LandMap do
     Region.longer_side(region) <= max_reg_side
   end
 
+  defp accept_max_area?(%LandMap{max_reg_area: max_reg_area}, region) do
+    Region.area(region) <= max_reg_area
+  end
+
+  defp accept_max_ratio?(%LandMap{max_reg_ratio: max_reg_ratio}, %Region{width: w, height: h}) do
+    {min_side, max_side} = if(w < h, do: {w, h}, else: {h, w})
+    ratio = max_side / min_side
+    ratio <= max_reg_ratio
+  end
+
   defp cells_free?(%LandMap{freecells: freecells}, cells) do
     MapSet.subset?(cells, freecells)
   end
 
-  @spec add_random_regions(LandMap.t, regions_to_add :: :fill | Integer) :: LandMap.t
+  @spec add_random_regions(LandMap.t, regions_to_add :: :fill | Integer) :: {:ok, LandMap.t}
 
-  defp add_random_regions(world = %LandMap{}, 0),
+  defp add_random_regions(world = %LandMap{}, 0) do
     # No more regions to add, return the world
-    do: {:ok, world}
+    # IO.puts "No more space"
+    {:ok, world}
+  end
   defp add_random_regions(world = %LandMap{freecells: freecells}, :fill) do
     # No more free cells but we want to fill so it's ok
     if MapSet.size(freecells) === 0 do
@@ -199,44 +219,47 @@ defmodule LandMap do
 
   defp add_rnd_region(world = %LandMap{freecells: freecells}) do
     # a 1-cell region created from a free cell always fits
-    IO.puts "\nAdding random region"
+    # IO.puts "\nAdding random region"
     # Choosing a random cell
     cell = Enum.random(freecells)
     # Or choosing a specific cell : here we try with the lowest x + y
-    # cell = Enum.reduce(freecells, &choose_start_cell_closest_to_center/2)
+    # cell = Enum.reduce(freecells, &choose_start_cell_biggest_xy_diff/2)
     region = Region.from_cell(cell)
     expand_region_or_insert(world, region, expand_sides_list())
   end
 
 
-  # defp choose_start_cell_closest_to_origin(a = %{x: xA, y: yA}, b = %{x: xB, y: yB})
-  #   when xA + yA < xB + yB, do: a
-  # defp choose_start_cell_closest_to_origin(a, b), do: b
+  defp choose_start_cell_closest_to_origin(a = %{x: xA, y: yA}, b = %{x: xB, y: yB})
+    when xA + yA < xB + yB, do: a
+  defp choose_start_cell_closest_to_origin(a, b), do: b
 
-  # defp choose_start_cell_biggest_xy_diff(a = %{x: xA, y: yA}, b = %{x: xB, y: yB})
-  #   when abs(xA - yA) > abs(xB - yB), do: a
-  # defp choose_start_cell_biggest_xy_diff(a, b), do: b
+  defp choose_start_cell_biggest_xy_diff(a = %{x: xA, y: yA}, b = %{x: xB, y: yB})
+    when abs(xA - yA) > abs(xB - yB), do: a
+  defp choose_start_cell_biggest_xy_diff(a, b), do: b
 
-  # # use a global here. if map accepts dynamic square size, we'll have to use a
-  # # fun generator
-  # defp choose_start_cell_closest_to_center(a = %{x: xA, y: yA}, b = %{x: xB, y: yB}) do
-  #   square_center = @square / 2
-  #   dist_a = abs(square_center - xA) + abs(square_center - yA)
-  #   dist_b = abs(square_center - xB) + abs(square_center - yB)
-  #   if(dist_a < dist_b, do: a, else: b)
-  # end
+  # use a global here. if map accepts dynamic square size, we'll have to use a
+  # fun generator
+  defp choose_start_cell_closest_to_center(a = %{x: xA, y: yA}, b = %{x: xB, y: yB}) do
+    square_center = @square / 2
+    dist_a = abs(square_center - xA) + abs(square_center - yA)
+    dist_b = abs(square_center - xB) + abs(square_center - yB)
+    if(dist_a < dist_b, do: a, else: b)
+  end
 
   defp expand_sides_list() do
-    Enum.shuffle(@all_expand_sides)
-    # Enum.drop(Enum.shuffle(@all_expand_sides), 1)
+    # Use of the process dictionnary is quite bad but osef
+    [a,b,c,d] = Process.get(:cache_last_sides_list, @all_expand_sides)
+    next = [b,c,d,a] # just rotate the list to the left
+    Process.put(:cache_last_sides_list, next)
+    next
   end
 
-  defp expand_region_or_insert(world, fitting_region, expand_sides = []) do
-    IO.puts "no more side to expand, return"
+  defp expand_region_or_insert(world, fitting_region, other_expand_sides = []) do
+    # IO.puts "no more side to expand, return"
     {:ok, insert_region(world, fitting_region)}
   end
-  defp expand_region_or_insert(world, fitting_region, [side|expand_sides]) do
-    IO.puts "try to expand [#{side}]"
+  defp expand_region_or_insert(world, fitting_region, [side|other_expand_sides]) do
+    # IO.puts "try to expand [#{side}]"
     # we try to expand the region and fit it. if it fits, we keep the new
     # expanded region and recurse to expand more. If it doesn't fit because we
     # are to max size, we insert the prev region (the one that fits) to the
@@ -245,22 +268,25 @@ defmodule LandMap do
     expanded_region = Region.expand(fitting_region, side)
     case region_fits(world, expanded_region) do
       # region has maximum size :
-      {:error, :max_side_size} ->
-        IO.puts "max region size reached, return"
+      {:error, :max_region_dimensions} ->
+        # IO.puts "max region size reached, return"
         {:ok, insert_region(world, fitting_region)}
       # doesn't fit, try another side :
       {:error, reason} when reason === :out_of_bounds or reason === :cells_not_free ->
-        IO.puts "could not expand this side, try other side"
+        # Trying other sides or abandon ?
+        # IO.puts "could not expand this side, try other side"
         expand_region_or_insert(
-          world, fitting_region, expand_sides
+          world, fitting_region, other_expand_sides
         )
+        # IO.puts "could not expand this side, stop there"
+        # {:ok, insert_region(world, fitting_region)}
       # fits, try to expand more :
       {:ok, _} ->
-        IO.puts "expanded, try other side"
+        # IO.puts "expanded, try other side"
         # we keep the succesful side at the end of the list
         # '++' is slow but the list is only 4 elems
         expand_region_or_insert(
-          world, expanded_region, expand_sides ++ [side]
+          world, expanded_region, other_expand_sides ++ [side]
         )
     end
   end
@@ -292,6 +318,8 @@ defmodule Pickr.PageController do
 
 
   def generate_map(conn, _params) do
+    map = LandMap.random_map
+    IO.puts "output map = #{inspect map}"
     render conn, "map.html", map: LandMap.random_map
   end
 

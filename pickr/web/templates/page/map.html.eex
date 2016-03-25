@@ -5,24 +5,17 @@
 <script>
 var landmap = <%= raw Poison.encode!(@map, pretty: true) %>;
 var mapSquareSide = Math.max(landmap.width, landmap.height)
-var svgSquareSide = 500
+var svgSquareSide = 320
 var config = {
 	svg: {width: svgSquareSide, height: svgSquareSide},
 }
 var cellScale = d3.scale.linear()
 	.domain([0, mapSquareSide])
 	.range([0, svgSquareSide])
-
-var colors20b = d3.scale.category20b()
-
-function randomColor() {
-	var i = Math.floor(Math.random() * 20)
-	return colors20b(i)
-}
-
-function getColor(region) {
-	return randomColor()
-}
+var baseColor = d3.rgb(200,200,210)
+// var outerColor = d3.rgb(240,240,255)
+var outerColor = 'white'
+var flashingColor = d3.rgb(100,100,100)
 
 var svg = d3.select('#map').append('svg')
 	.attr({width: cellScale(landmap.width), height: cellScale(landmap.height)})
@@ -49,19 +42,16 @@ var ANIM_PAUSE_BEFORE_EXPAND = 15
 function after(time, fn, a, b, c, d, e, f) { return setTimeout(fn, time, a, b, c, d, e, f) }
 
 function initRegionRect(attrs, finalRegion, debug_index) {
-	var grayScaleVal = Math.round(Math.random() * 255)
-	var color = d3.rgb(grayScaleVal, grayScaleVal, grayScaleVal)
 	var rect = svg.append('rect')
 	.classed('region', 1)
 	.attr({
 		x: cellScale(attrs.x), y: cellScale(attrs.y), width: 0, height:0,
-		fill: getColor(finalRegion)
+		fill: flashingColor
 	})
-	// .transition()
-	// .duration(ANIM_EXPAND_DURATION)
 	.attr({width: cellScale(attrs.width), height: cellScale(attrs.height)})
-	svg.append('text').text(debug_index)
-	.attr({x: cellScale(finalRegion.x), y: cellScale(finalRegion.y + 0.5)})
+	// svg.append('text')
+		// .text(debug_index)
+		// .attr({x: cellScale(finalRegion.x), y: cellScale(finalRegion.y + 0.5)})
 	return rect
 }
 
@@ -77,6 +67,22 @@ function expandRegionRect(rect, attrs) {
 			width:  cellScale(attrs.width),
 			height: cellScale(attrs.height)
 		})
+}
+
+function fadeRegionRectColor(rect, region) {
+	var color = isOuterRegion(region) ? outerColor : baseColor
+	rect.transition()
+		.attr({fill: color})
+}
+
+function isOuterRegion(region) {
+	if (region.x === 0 || region.y === 0)
+		return true
+	if (region.x + region.width === landmap.width)
+		return true
+	if (region.y + region.height === landmap.height)
+		return true
+	return false
 }
 
 function expandRegionShape(dimensions, side) {
@@ -112,6 +118,7 @@ function loopRegions(regIndex) {after(ANIM_PAUSE_BEFORE_REGION, function(){
 
 	function loopExpands(expIndex) {after(ANIM_PAUSE_BEFORE_EXPAND + ANIM_EXPAND_DURATION, function(){
 		if (expands[expIndex] === void 0) {
+			fadeRegionRectColor(rect, region)
 			return loopRegions(regIndex + 1)
 		}
 		var side = expands[expIndex]
