@@ -5,7 +5,7 @@
 <script>
 var landmap = <%= raw Poison.encode!(@map, pretty: true) %>;
 var mapSquareSide = Math.max(landmap.width, landmap.height)
-var svgLongerSide = 320
+var svgLongerSide = 600
 var conf = {
 	svg: {width: svgLongerSide, height: svgLongerSide},
 	marginCells: {topbottom: 3, leftright: 3},
@@ -31,9 +31,8 @@ var flashingColor = d3.rgb(100,100,100)
 
 var svg = d3.select('#map').append('svg')
 	.attr({
-		// width: cellScale(landmap.width) + conf.margin.leftright * 2,
-		// height: cellScale(landmap.height) + conf.margin.topbottom * 2
-		width: 1000, height: 1000
+		width: cellScale(landmap.width) + conf.margin.leftright * 2,
+		height: cellScale(landmap.height) + conf.margin.topbottom * 2
 	})
 	.append('g')
 	.attr({
@@ -58,9 +57,9 @@ var svg = d3.select('#map').append('svg')
 // })
 
 var ANIM_EXPAND_DURATION = 0
-var ANIM_PAUSE_BEFORE_EXPAND = 0
+var ANIM_PAUSE_BEFORE_EXPAND = 10
 var ANIM_PAUSE_BEFORE_REGION = 0
-var ANIM_RECT_COLOR_FADE = 0
+var ANIM_RECT_COLOR_FADE = 500
 
 function after(time, fn, a, b, c, d, e, f) {
 	if (time > 0)
@@ -72,6 +71,8 @@ function after(time, fn, a, b, c, d, e, f) {
 function initRegionRect(attrs, region, debug_index) {
 	var rect = svg.append('rect')
 	.classed('region', 1)
+	.classed('width-'+region.width, 1)
+	.classed('height-'+region.height, 1)
 	.classed('biome-'+region.biome, 1)
 	.classed('temperate', region.climate === 'temperate')
 	.classed('tropical', region.climate === 'tropical')
@@ -166,6 +167,10 @@ loopRegions(0)
 	rect.biome-chasm {fill:     Black }
     rect.biome-volcano {fill:   Coral }
     rect.biome-ocean {fill:     CornflowerBlue  }
+    rect.biome-ocean {
+    	fill: CornflowerBlue;
+    	stroke: none;
+    }
     body {background:           CornflowerBlue  }
     rect.biome-lake {fill:      DarkCyan }
     rect.biome-mountains {fill: DarkGrey }

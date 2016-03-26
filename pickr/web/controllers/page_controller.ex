@@ -177,7 +177,7 @@ defmodule LandGrid do
   # typiquement les régions d'une seule cellule - on aura un landstyle non
   # habitable.
 
-  @square 32
+  @square 64
 
   @default_width  @square
   @default_height @square
@@ -189,9 +189,9 @@ defmodule LandGrid do
     regions: [],
     width: @default_width,
     height: @default_height,
-    max_reg_side: 5,
-    max_reg_area: 20,
-    max_reg_ratio: 999 # if X, width cannot be (X + 1) times longer than height, and height than width
+    max_reg_side: 20,
+    max_reg_area: 40,
+    max_reg_ratio: 50 # width cannot be (X + 1) times longer than height, and height than width
   ]
 
   @type t :: %LandGrid{}
@@ -234,9 +234,9 @@ defmodule LandGrid do
   # @doc region_fits returns {:error, reason} or {:ok, new_freecells} where
   # new_freecells is the list of cells without those used by region
   defp region_fits(world = %LandGrid{freecells: freecells}, region = %Region{}) do
-    with :ok <- ensure(accept_max_side?(world, region), :max_region_dimensions),
-         :ok <- ensure(accept_max_area?(world, region), :max_region_dimensions),
-         :ok <- ensure(accept_max_ratio?(world, region), :max_region_dimensions),
+    with :ok <- ensure(accept_max_side?(world, region),  :region_side_too_long),
+         :ok <- ensure(accept_max_area?(world, region),  :region_area_to_vast),
+         :ok <- ensure(accept_max_ratio?(world, region), :region_ratio_to_small),
          regcells = Region.cells(region),
          :ok <- ensure(Region.in_bounds?(region, 0, 0, world.width, world.height), :out_of_bounds),
          :ok <- ensure(cells_free?(world, regcells), :cells_not_free),
@@ -322,12 +322,17 @@ defmodule LandGrid do
     # free, we try on another side
     expanded_region = Region.expand(fitting_region, side)
     case region_fits(world, expanded_region) do
-      # region has maximum size :
-      {:error, :max_region_dimensions} ->
+      # region has maximum side length :
+      {:error, :region_side_too_long} ->
         # IO.puts "max region size reached, return"
         {:ok, insert_region(world, fitting_region)}
       # doesn't fit, try another side :
-      {:error, reason} when reason === :out_of_bounds or reason === :cells_not_free ->
+      {:error, reason} when reason in [
+        :region_area_to_vast,
+        :region_ratio_to_small,
+        :out_of_bounds,
+        :cells_not_free
+        ] ->
         # Trying other sides or abandon ?
         # IO.puts "could not expand this side, try other side"
         expand_region_or_insert(
@@ -469,7 +474,6 @@ defmodule Pickr.PageController do
 
   def generate_map(conn, _params) do
     map = LandMap.random_map
-    IO.puts "output map = #{inspect map}"
     render conn, "map.html", map: LandMap.random_map
   end
 
