@@ -1,19 +1,16 @@
-# Pickr
+# Pizza Picker
 
-To start your Phoenix app:
+Sluuuurp !
 
-  * Install dependencies with `mix deps.get`
-  * Create and migrate your database with `mix ecto.create && mix ecto.migrate`
-  * Start Phoenix endpoint with `mix phoenix.server`
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+## Model
 
-Ready to run in production? Please [check our deployment guides](http://www.phoenixframework.org/docs/deployment).
+### Meal
 
-## Learn more
+A meal is a simple dinner course, like a pizza or a burger. It has a name, an image, a list of ingredients, a mealtype (pizza, burger, etc.), a list of prices/sizes, and belongs to a mealset.
 
-  * Official website: http://www.phoenixframework.org/
-  * Guides: http://phoenixframework.org/docs/overview
-  * Docs: http://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
+### Mealset
+
+A mealset is a set of meals. It's this set that is used to render a picker page. It has a name, belongs to a user, and should have some configurations options and belong to a location.
+
+At this time, the meals are also stored as json.

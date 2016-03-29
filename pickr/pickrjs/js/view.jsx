@@ -1,6 +1,5 @@
 import {status} from 'constants'
 let call = require('helpers/call')
-let get = require('helpers/get')
 let interleave = require('helpers/interleave')
 let m = require('mithril')
 
@@ -111,7 +110,6 @@ function formatPizza(p, index, opts) {
 	let pHeight = opts.style.get().pizzaRowHeightPx
 	let pMargin = opts.style.get().pizzaRowMarginPx
 	let visible = p.visible()
-	let rankChanged = p.rank() !== p.prevRank()
 	let rank = p.rank()
 	let top = visible
 		? rank * (pHeight + pMargin)

@@ -1,12 +1,5 @@
 (function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        define(['helpers/assert', 'extend'], factory);
-    } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('helpers/assert'), require());
-    } else {
-        throw new Error('not available without build')
-        root.returnExports = factory();
-  }
+    module.exports = factory(require('helpers/assert'), require('extend'));
 }(this, function (assert, extend) {
 
 	// This modules has a simple signal mechanism just like Reflux does.

@@ -1,7 +1,6 @@
 import {status} from 'constants'
 let assert = require('helpers/assert')
 let extend = require('extend')
-let get = require('helpers/get')
 let m = require('mithril')
 let omap = require('helpers/omap')
 let ovals = require('helpers/ovals')
