@@ -11,7 +11,7 @@ config :pickr, Pickr.Endpoint,
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
-  watchers: []
+  watchers: [node: ["node_modules/webpack/bin/webpack.js", "--watch", "--color"]]
 
 # Watch static and templates for browser reloading.
 config :pickr, Pickr.Endpoint,
